@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0f6e56">
+    <title>停哪好</title>
+    <link rel="stylesheet" href="src/ui/styles.css">
+    <link rel="manifest" href="manifest.webmanifest">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-header">
+        <p class="kicker">Parking Assist</p>
+        <h1>停哪好</h1>
+        <p class="summary">貼上 Google Maps 位置、地址或店名，直接看前三個建議停車場。</p>
+      </header>
+
+      <section class="panel auth-panel" data-auth-panel hidden>
+        <h2>私人使用</h2>
+        <p>第一次在這台裝置使用時輸入 PIN，之後會自動記住。</p>
+        <form data-auth-form>
+          <label for="pin">PIN</label>
+          <div class="auth-row">
+            <input id="pin" name="pin" type="password" inputmode="numeric" autocomplete="current-password">
+            <button type="submit">解鎖</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel search-panel">
+        <label for="destination-search">目的地</label>
+        <div class="search-row">
+          <input id="destination-search" type="search" placeholder="貼上 Maps 連結、地址或店名" autocomplete="off" data-search-input>
+          <button type="button" data-search-button>搜尋</button>
+        </div>
+        <div class="search-actions">
+          <button type="button" class="secondary-button" data-paste-button>貼上 Maps 連結</button>
+        </div>
+        <div class="suggestions" data-suggestions hidden></div>
+        <p class="attribution" data-attribution></p>
+      </section>
+
+      <section class="panel status-panel" data-status>載入停車資料...</section>
+
+      <section class="recommendations" aria-live="polite" data-recommendations></section>
+
+      <footer class="app-footer">
+        <button type="button" class="link-button" data-lock-button hidden>鎖定這台裝置</button>
+      </footer>
+    </main>
+
+    <script src="data.js"></script>
+    <script type="module" src="src/ui/app.js"></script>
+  </body>
+</html>

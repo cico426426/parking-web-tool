@@ -1,0 +1,33 @@
+{
+  "destination": {
+    "id": "cycu",
+    "name": "中原大學",
+    "lat": 24.9575,
+    "lng": 121.2408
+  },
+  "carParks": [
+    {
+      "CarParkID": "P1",
+      "CarParkName": { "Zh_tw": "中原大學停車場" },
+      "CarParkPosition": { "PositionLat": 24.9578, "PositionLon": 121.241 },
+      "TotalSpaces": 80
+    },
+    {
+      "CarParkID": "P2",
+      "CarParkName": { "Zh_tw": "實踐路停車場" },
+      "CarParkPosition": { "PositionLat": 24.9602, "PositionLon": 121.239 },
+      "TotalSpaces": 40
+    },
+    {
+      "CarParkID": "P3",
+      "CarParkName": { "Zh_tw": "新中北路停車場" },
+      "CarParkPosition": { "PositionLat": 24.9559, "PositionLon": 121.243 },
+      "TotalSpaces": 30
+    }
+  ],
+  "availability": [
+    { "CarParkID": "P1", "AvailableSpaces": 12 },
+    { "CarParkID": "P2", "AvailableSpaces": 0 },
+    { "CarParkID": "P3" }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "停哪好",
+  "short_name": "停哪好",
+  "description": "私人停車推薦工具",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f6f2",
+  "theme_color": "#0f6e56",
+  "icons": [],
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}

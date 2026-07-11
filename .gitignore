@@ -1,0 +1,11 @@
+.env
+.env*
+.dev.vars*
+node_modules/
+data.js
+dist/
+build/
+*.log
+npm-debug.log*
+.DS_Store
+.agents/

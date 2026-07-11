@@ -1,0 +1,19 @@
+name = "parking-recommendation"
+main = "index.js"
+compatibility_date = "2026-07-12"
+
+[assets]
+directory = "../"
+binding = "ASSETS"
+
+[observability]
+enabled = true
+
+[vars]
+# Non-sensitive defaults only. Use Cloudflare Secrets for real values.
+DEFAULT_CITY = "Taoyuan"
+
+# Required secrets:
+# - TDX_ID
+# - TDX_SECRET
+# - OWNER_ACCESS_SECRET
