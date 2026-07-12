@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { distanceMeters, rankRecommendations } from "../../src/parking/rank.js";
+import { distanceMeters, rankRecommendations } from "../../public/src/parking/rank.js";
 
 const destination = { id: "dest", name: "中原大學", lat: 24.9575, lng: 121.2408 };
 

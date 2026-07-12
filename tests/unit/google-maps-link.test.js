@@ -7,7 +7,7 @@ import {
   parseGoogleMapsCoordinates,
   placeNameFromGoogleMapsUrl,
   resolveGoogleMapsLink,
-} from "../../src/search/google-maps-link.js";
+} from "../../public/src/search/google-maps-link.js";
 
 const PLACE_URL =
   "https://www.google.com/maps/place/%E4%B8%89%E9%87%8D%E9%B4%A8%E9%9C%B8%E7%8E%8B/@25.0633753,121.4051068,12017m/data=!3m1!1e3!4m6!3m5!1sabc!8m2!3d25.0779507!4d121.4900227";

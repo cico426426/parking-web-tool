@@ -3,8 +3,10 @@
 .dev.vars*
 node_modules/
 data.js
+public/data.json
 dist/
 build/
+.wrangler/
 *.log
 npm-debug.log*
 .DS_Store

@@ -19,8 +19,8 @@
 **Purpose**: Prepare the existing JavaScript project for modular browser, script, and Worker code.
 
 - [X] T001 Update `package.json` to use ES modules and add `test`, `dev`, and `serve` scripts
-- [X] T002 Create source directory placeholders in `src/parking/.gitkeep`, `src/auth/.gitkeep`, `src/search/.gitkeep`, `src/navigation/.gitkeep`, `src/ui/.gitkeep`, `worker/.gitkeep`, `tests/unit/.gitkeep`, and `tests/contract/.gitkeep`
-- [X] T003 [P] Update `.gitignore` to exclude `.env*`, `.dev.vars*`, `node_modules/`, `data.js`, build output, and local logs
+- [X] T002 Create source directory placeholders in `public/src/parking/.gitkeep`, `public/src/auth/.gitkeep`, `public/src/search/.gitkeep`, `public/src/navigation/.gitkeep`, `public/src/ui/.gitkeep`, `worker/.gitkeep`, `tests/unit/.gitkeep`, and `tests/contract/.gitkeep`
+- [X] T003 [P] Update `.gitignore` to exclude `.env*`, `.dev.vars*`, `node_modules/`, `public/data.json`, build output, and local logs
 - [X] T004 [P] Create `worker/wrangler.toml` with required secret names documented for `TDX_ID`, `TDX_SECRET`, and `OWNER_ACCESS_SECRET`
 
 ---
@@ -31,11 +31,11 @@
 
 **CRITICAL**: No user story work should begin until this phase is complete.
 
-- [X] T005 [P] Implement supported city metadata and coverage helpers in `src/parking/city.js`
-- [X] T006 [P] Implement TDX car park and availability normalization in `src/parking/normalize.js`
-- [X] T007 [P] Implement distance, approximate time, scoring, and top-N ranking helpers in `src/parking/rank.js`
-- [X] T008 [P] Implement Google Maps directions URL builder in `src/navigation/google-maps-url.js`
-- [X] T009 [P] Implement PIN unlock, remembered access, request auth header, 401 reset, and lock-device helpers in `src/auth/access.js`
+- [X] T005 [P] Implement supported city metadata and coverage helpers in `public/src/parking/city.js`
+- [X] T006 [P] Implement TDX car park and availability normalization in `public/src/parking/normalize.js`
+- [X] T007 [P] Implement distance, approximate time, scoring, and top-N ranking helpers in `public/src/parking/rank.js`
+- [X] T008 [P] Implement Google Maps directions URL builder in `public/src/navigation/google-maps-url.js`
+- [X] T009 [P] Implement PIN unlock, remembered access, request auth header, 401 reset, and lock-device helpers in `public/src/auth/access.js`
 - [X] T010 [P] Implement shared API error and JSON response helpers in `worker/response.js`
 - [X] T011 Configure Node test runner and module imports in `package.json`
 - [X] T012 [P] Add unit tests for normalization edge cases in `tests/unit/normalize.test.js`
@@ -61,13 +61,13 @@
 
 ### Implementation for User Story 1
 
-- [X] T019 [US1] Refactor `fetch-parking.mjs` to use `src/parking/city.js`, `src/parking/normalize.js`, and `src/parking/rank.js`
-- [X] T020 [US1] Update `fetch-parking.mjs` to write normalized recommendations and destination metadata to `data.js`
-- [X] T021 [P] [US1] Create mobile-first app shell and recommendation list markup in `index.html`
-- [X] T022 [P] [US1] Create mobile-first layout, unlock state, loading state, result state, empty state, and error state styles in `src/ui/styles.css`
-- [X] T023 [US1] Implement browser app workflow for loading snapshot data and rendering top recommendations in `src/ui/app.js`
-- [X] T024 [US1] Implement recommendation warnings for unknown availability, stale data, no coverage, and all-full results in `src/ui/app.js`
-- [X] T025 [US1] Wire `index.html` to load `data.js`, `src/ui/styles.css`, and `src/ui/app.js`
+- [X] T019 [US1] Refactor `fetch-parking.mjs` to use `public/src/parking/city.js`, `public/src/parking/normalize.js`, and `public/src/parking/rank.js`
+- [X] T020 [US1] Update `fetch-parking.mjs` to write normalized recommendations and destination metadata to `public/data.json`
+- [X] T021 [P] [US1] Create mobile-first app shell and recommendation list markup in `public/index.html`
+- [X] T022 [P] [US1] Create mobile-first layout, unlock state, loading state, result state, empty state, and error state styles in `public/src/ui/styles.css`
+- [X] T023 [US1] Implement browser app workflow for loading snapshot data and rendering top recommendations in `public/src/ui/app.js`
+- [X] T024 [US1] Implement recommendation warnings for unknown availability, stale data, no coverage, and all-full results in `public/src/ui/app.js`
+- [X] T025 [US1] Wire `public/index.html` to load `public/data.json`, `public/src/ui/styles.css`, and `public/src/ui/app.js`
 - [X] T026 [US1] Validate Scenario 1 and Scenario 3 from `spec-kit/specs/001-parking-recommendation/quickstart.md`
 
 **Checkpoint**: User Story 1 is functional as a local/snapshot MVP.
@@ -86,9 +86,9 @@
 
 ### Implementation for User Story 2
 
-- [X] T028 [US2] Add one-tap navigation actions to recommendation rendering in `src/ui/app.js`
-- [X] T029 [US2] Add external navigation fallback text and copyable destination coordinates in `src/ui/app.js`
-- [X] T030 [US2] Add accessible navigation button styles and touch target sizing in `src/ui/styles.css`
+- [X] T028 [US2] Add one-tap navigation actions to recommendation rendering in `public/src/ui/app.js`
+- [X] T029 [US2] Add external navigation fallback text and copyable destination coordinates in `public/src/ui/app.js`
+- [X] T030 [US2] Add accessible navigation button styles and touch target sizing in `public/src/ui/styles.css`
 - [X] T031 [US2] Validate Scenario 4 from `spec-kit/specs/001-parking-recommendation/quickstart.md`
 
 **Checkpoint**: User Story 2 works independently on top of the recommendation list.
@@ -108,14 +108,14 @@
 
 ### Implementation for User Story 3
 
-- [X] T034 [US3] Implement provider-isolated destination search adapter in `src/search/geocode.js`
-- [X] T035 [US3] Add destination search input, suggestions list, empty state, and selected destination display in `index.html`
-- [X] T036 [US3] Add debounced search, suggestion selection, and destination-to-recommendation flow in `src/ui/app.js`
-- [X] T037 [US3] Add search UI styles, attribution area, and mobile keyboard-friendly spacing in `src/ui/styles.css`
+- [X] T034 [US3] Implement provider-isolated destination search adapter in `public/src/search/geocode.js`
+- [X] T035 [US3] Add destination search input, suggestions list, empty state, and selected destination display in `public/index.html`
+- [X] T036 [US3] Add debounced search, suggestion selection, and destination-to-recommendation flow in `public/src/ui/app.js`
+- [X] T037 [US3] Add search UI styles, attribution area, and mobile keyboard-friendly spacing in `public/src/ui/styles.css`
 - [X] T038 [US3] Implement private Worker `/api/search` route with auth check before provider calls in `worker/index.js`
 - [X] T039 [US3] Implement private Worker `/api/recommendations` route with auth check, TDX fetch, normalization, ranking, and CORS in `worker/index.js`
 - [X] T040 [US3] Add Worker request limiting and short-lived response caching in `worker/index.js`
-- [X] T041 [US3] Connect browser API mode, PIN unlock screen, remembered access, automatic auth headers, 401 reset, and lock-device action in `src/ui/app.js`
+- [X] T041 [US3] Connect browser API mode, PIN unlock screen, remembered access, automatic auth headers, 401 reset, and lock-device action in `public/src/ui/app.js`
 - [X] T042 [US3] Validate Scenario 5 and Scenario 6 from `spec-kit/specs/001-parking-recommendation/quickstart.md`
 
 **Checkpoint**: User Story 3 supports live private search and live private recommendations.
@@ -134,10 +134,10 @@
 
 ### Implementation for User Story 4
 
-- [X] T044 [US4] Add PWA manifest with `share_target` configuration in `manifest.webmanifest`
-- [X] T045 [US4] Add service worker shell for installed PWA and share-target handoff in `service-worker.js`
-- [X] T046 [US4] Implement shared text and URL parsing in `src/search/share-target.js`
-- [X] T047 [US4] Connect shared input prefill and fallback behavior in `src/ui/app.js`
+- [X] T044 [US4] Add PWA manifest with `share_target` configuration in `public/manifest.webmanifest`
+- [X] T045 [US4] Add service worker shell for installed PWA and share-target handoff in `public/service-worker.js`
+- [X] T046 [US4] Implement shared text and URL parsing in `public/src/search/share-target.js`
+- [X] T047 [US4] Connect shared input prefill and fallback behavior in `public/src/ui/app.js`
 - [X] T048 [US4] Add install/share-target notes to `README.md`
 
 **Checkpoint**: User Story 4 is available as a post-MVP enhancement where browser support allows it.
@@ -150,11 +150,11 @@
 
 - [X] T049 [P] Update `README.md` with local setup, `.env` keys, snapshot workflow, private PIN workflow, Cloudflare deployment notes, and quickstart commands
 - [X] T050 [P] Add Cloudflare secret setup notes and do-not-commit guidance in `worker/README.md`
-- [X] T051 [P] Add OpenStreetMap/Nominatim attribution display requirements to `src/ui/app.js`
-- [X] T052 Harden UI text overflow, mobile viewport behavior, and loading/error transitions in `src/ui/styles.css`
-- [X] T053 Run `npm test` and fix failures in `src/parking/normalize.js`, `src/parking/rank.js`, `src/search/geocode.js`, `src/auth/access.js`, `src/navigation/google-maps-url.js`, and `worker/index.js`
+- [X] T051 [P] Add OpenStreetMap/Nominatim attribution display requirements to `public/src/ui/app.js`
+- [X] T052 Harden UI text overflow, mobile viewport behavior, and loading/error transitions in `public/src/ui/styles.css`
+- [X] T053 Run `npm test` and fix failures in `public/src/parking/normalize.js`, `public/src/parking/rank.js`, `public/src/search/geocode.js`, `public/src/auth/access.js`, `public/src/navigation/google-maps-url.js`, and `worker/index.js`
 - [X] T054 Validate all quickstart scenarios and record results in `spec-kit/specs/001-parking-recommendation/validation.md`
-- [X] T055 Review generated `data.js`, `.env`, `.dev.vars`, and `.agents/` ignore coverage in `.gitignore`
+- [X] T055 Review generated `public/data.json`, `.env`, `.dev.vars`, and `.agents/` ignore coverage in `.gitignore`
 
 ---
 
@@ -196,7 +196,7 @@
 Task: "T017 [P] [US1] Add recommendation API contract tests for success, no usable parking, and unavailable parking data in tests/contract/parking-api.test.js"
 Task: "T018 [P] [US1] Add snapshot recommendation fixture data for Zhongli in tests/fixtures/tdx-taoyuan-sample.json"
 Task: "T021 [P] [US1] Create mobile-first app shell and recommendation list markup in index.html"
-Task: "T022 [P] [US1] Create mobile-first layout, unlock state, loading state, result state, empty state, and error state styles in src/ui/styles.css"
+Task: "T022 [P] [US1] Create mobile-first layout, unlock state, loading state, result state, empty state, and error state styles in public/src/ui/styles.css"
 ```
 
 ## Parallel Example: User Story 3
@@ -204,9 +204,9 @@ Task: "T022 [P] [US1] Create mobile-first layout, unlock state, loading state, r
 ```text
 Task: "T032 [P] [US3] Add search adapter tests for successful results, empty results, and provider failure in tests/unit/geocode.test.js"
 Task: "T033 [P] [US3] Add search API contract tests for /api/search success, SEARCH_UNAVAILABLE, UNAUTHORIZED, and RATE_LIMITED in tests/contract/search-api.test.js"
-Task: "T034 [US3] Implement provider-isolated destination search adapter in src/search/geocode.js"
+Task: "T034 [US3] Implement provider-isolated destination search adapter in public/src/search/geocode.js"
 Task: "T035 [US3] Add destination search input, suggestions list, empty state, and selected destination display in index.html"
-Task: "T037 [US3] Add search UI styles, attribution area, and mobile keyboard-friendly spacing in src/ui/styles.css"
+Task: "T037 [US3] Add search UI styles, attribution area, and mobile keyboard-friendly spacing in public/src/ui/styles.css"
 ```
 
 ---
@@ -235,5 +235,5 @@ Task: "T037 [US3] Add search UI styles, attribution area, and mobile keyboard-fr
 
 - Keep TDX credentials, Google keys, PIN secrets, `.env`, and `.dev.vars` out of git.
 - Do not embed Google Maps or Google Places unless a later task explicitly changes the plan.
-- Keep recommendation logic pure and testable so `fetch-parking.mjs`, `src/ui/app.js`, and `worker/index.js` can share behavior.
+- Keep recommendation logic pure and testable so `fetch-parking.mjs`, `public/src/ui/app.js`, and `worker/index.js` can share behavior.
 - Mark tasks `[X]` in this file as they are completed during `$speckit-implement`.

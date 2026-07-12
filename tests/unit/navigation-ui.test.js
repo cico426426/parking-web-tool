@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { recommendationHtml } from "../../src/ui/app.js";
+import { recommendationHtml } from "../../public/src/ui/app.js";
 
 test("recommendationHtml includes one-tap navigation and fallback coordinates", () => {
   const html = recommendationHtml({

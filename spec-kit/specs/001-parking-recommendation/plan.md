@@ -14,7 +14,7 @@ Build a private, mobile-first parking recommendation web tool/PWA for Taiwan des
 
 **Primary Dependencies**: Existing native `fetch` in Node/browser/Worker; Leaflet 1.9.4 for optional map display; Google Maps URLs for external navigation handoff; TDX parking APIs for parking lot and availability data; provider-isolated geocoding with Nominatim/Photon for development and Google Places as a possible later replacement.
 
-**Storage**: No database for MVP. Local generated `data.js`/JSON snapshot for Phase 1; live responses from Worker for Phase 4; optional browser cache for recent search results only. Store the server-side access secret as a Worker environment variable; store only remembered access state on the owner's device after the first successful PIN/password unlock.
+**Storage**: No database for MVP. Local generated `public/data.json`/JSON snapshot for Phase 1; live responses from Worker for Phase 4; optional browser cache for recent search results only. Store the server-side access secret as a Worker environment variable; store only remembered access state on the owner's device after the first successful PIN/password unlock.
 
 **Testing**: Node built-in test runner for pure ranking/normalization functions; Playwright or equivalent browser smoke tests for the mobile workflow; manual mobile validation for navigation handoff.
 
@@ -60,21 +60,25 @@ specs/001-parking-recommendation/
 
 ```text
 fetch-parking.mjs            # existing local TDX fetch/debug entry point
-data.js                      # generated MVP data snapshot, ignored or regenerated
-index.html                   # mobile web tool shell
-src/
-├── parking/
-│   ├── normalize.js         # normalize TDX parking and availability records
-│   ├── rank.js              # distance, scoring, top-three recommendation logic
-│   └── city.js              # supported city mapping and coverage helpers
-├── auth/
-│   └── access.js            # PIN unlock, remembered access, and request auth helpers
-├── search/
-│   └── geocode.js           # provider-isolated destination search adapter
-├── navigation/
-│   └── google-maps-url.js   # external navigation URL builder
-└── ui/
-    └── app.js               # browser workflow and rendering
+public/
+├── config.js                # deployed Worker URL, safe public config
+├── data.json                # generated local snapshot, ignored or regenerated
+├── index.html               # mobile web tool shell
+├── manifest.webmanifest
+├── service-worker.js
+└── src/
+    ├── parking/
+    │   ├── normalize.js     # normalize TDX parking and availability records
+    │   ├── rank.js          # distance, scoring, top-three recommendation logic
+    │   └── city.js          # supported city mapping and coverage helpers
+    ├── auth/
+    │   └── access.js        # PIN unlock, remembered access, and request auth helpers
+    ├── search/
+    │   └── geocode.js       # provider-isolated destination search adapter
+    ├── navigation/
+    │   └── google-maps-url.js
+    └── ui/
+        └── app.js           # browser workflow and rendering
 worker/
 └── index.js                 # optional private live-data proxy for TDX/geocoding
 tests/
@@ -86,7 +90,7 @@ tests/
     └── parking-api.test.js
 ```
 
-**Structure Decision**: Keep a single small JavaScript project in the existing repository root. Shared pure logic lives under `src/` so the local script, browser UI, and Worker can reuse the same decisions where practical. The Worker is isolated under `worker/` because it has deployment-specific concerns and secret access.
+**Structure Decision**: Keep a single small JavaScript project in the existing repository root. Public frontend assets live under `public/` so Cloudflare Pages can deploy that directory directly. Shared pure logic lives under `public/src/` so the local script, browser UI, and Worker can reuse the same decisions where practical. The Worker is isolated under `worker/` because it has deployment-specific concerns and secret access.
 
 ## Complexity Tracking
 

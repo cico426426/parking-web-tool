@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { buildGoogleMapsDirectionsUrl } from "../../src/navigation/google-maps-url.js";
+import { buildGoogleMapsDirectionsUrl } from "../../public/src/navigation/google-maps-url.js";
 
 test("buildGoogleMapsDirectionsUrl creates a directions URL", () => {
   assert.equal(

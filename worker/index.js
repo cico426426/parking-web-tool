@@ -1,8 +1,8 @@
-import { buildTdxParkingUrls, inferCityFromCoordinates } from "../src/parking/city.js";
-import { buildAvailabilityMap, normalizeCarParks } from "../src/parking/normalize.js";
-import { rankRecommendations } from "../src/parking/rank.js";
-import { searchDestinations } from "../src/search/geocode.js";
-import { resolveGoogleMapsLink } from "../src/search/google-maps-link.js";
+import { buildTdxParkingUrls, inferCityFromCoordinates } from "../public/src/parking/city.js";
+import { buildAvailabilityMap, normalizeCarParks } from "../public/src/parking/normalize.js";
+import { rankRecommendations } from "../public/src/parking/rank.js";
+import { searchDestinations } from "../public/src/search/geocode.js";
+import { resolveGoogleMapsLink } from "../public/src/search/google-maps-link.js";
 import { errorResponse, jsonResponse, optionsResponse } from "./response.js";
 
 const TOKEN_URL =

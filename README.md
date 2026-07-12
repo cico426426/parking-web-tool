@@ -11,13 +11,13 @@ TDX_ID=your-client-id
 TDX_SECRET=your-client-secret
 ```
 
-Generate a snapshot:
+Generate a local snapshot:
 
 ```sh
 npm run dev
 ```
 
-The snapshot includes Taoyuan parking lots and availability. After it is generated, the web page can re-rank the same parking data for another searched destination without calling TDX again.
+The snapshot is written to `public/data.json` and includes Taoyuan parking lots and availability. After it is generated, the web page can re-rank the same parking data for another searched destination without calling TDX again.
 
 Open the static web tool:
 
@@ -43,7 +43,7 @@ The intended deployed flow supports Taiwan restaurants, attractions, and address
 
 TDX parking availability is still matched by parking lot ID after the candidate lots are loaded.
 
-Local snapshot mode is different: `data.js` contains only one city's parking data at a time. To test another city locally, regenerate the snapshot:
+Local snapshot mode is different: `public/data.json` contains only one city's parking data at a time. To test another city locally, regenerate the snapshot:
 
 ```sh
 PARKING_CITY=Taipei npm run dev
@@ -72,5 +72,32 @@ MVP deployment target:
 - Static frontend: Cloudflare Pages
 - Private API proxy: Cloudflare Workers
 - Secrets: Cloudflare Worker secrets
+
+## CLI Deployment
+
+Deploy the Worker first:
+
+```sh
+cd worker
+npx wrangler login
+npx wrangler deploy
+npx wrangler secret put TDX_ID
+npx wrangler secret put TDX_SECRET
+npx wrangler secret put OWNER_ACCESS_SECRET
+```
+
+Use the Worker URL from the deploy output in `public/config.js`:
+
+```js
+globalThis.PARKING_API_BASE_URL = "https://your-worker.workers.dev";
+```
+
+Then deploy `public/` to Cloudflare Pages:
+
+```sh
+npx wrangler pages deploy public --project-name=parking-web-tool
+```
+
+For dashboard Direct Upload, upload the `public/` folder only. Do not upload the repository root.
 
 Oracle Cloud can stay unused until the project needs a long-running server or database.

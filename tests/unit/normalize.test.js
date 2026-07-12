@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { buildAvailabilityMap, extractPosition, normalizeCarPark } from "../../src/parking/normalize.js";
+import { buildAvailabilityMap, extractPosition, normalizeCarPark } from "../../public/src/parking/normalize.js";
 
 test("extractPosition reads TDX PositionLat and PositionLon", () => {
   assert.deepEqual(
@@ -44,7 +44,7 @@ test("buildAvailabilityMap tracks available and full states", () => {
 });
 
 test("normalizers support TDX wrapper objects", async () => {
-  const module = await import("../../src/parking/normalize.js");
+  const module = await import("../../public/src/parking/normalize.js");
   const lots = module.normalizeCarParks({
     CarParks: [
       {

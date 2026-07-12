@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "Private mobile web tool for parking recommendations",
   "type": "module",
-  "main": "src/ui/app.js",
+  "main": "public/src/ui/app.js",
   "scripts": {
     "test": "node --test tests/unit/*.test.js tests/contract/*.test.js",
     "dev": "node --env-file=.env fetch-parking.mjs",
-    "serve": "python3 -m http.server 8080"
+    "serve": "python3 -m http.server 8080 -d public"
   },
   "keywords": [],
   "author": "",

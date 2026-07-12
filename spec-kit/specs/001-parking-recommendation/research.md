@@ -66,7 +66,7 @@
 
 - Browser calls TDX directly: exposes credentials and may hit CORS issues.
 - Traditional server: more deployment/admin work than the side-project MVP needs.
-- Continue generated `data.js` forever: good for demos but not live enough for mobile use.
+- Continue generated `public/data.json` forever: good for demos but not live enough for mobile use.
 
 ## Docs Snapshot
 

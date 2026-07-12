@@ -8,7 +8,7 @@ import {
   handleUnauthorized,
   rememberAccess,
   tokenFromPin,
-} from "../../src/auth/access.js";
+} from "../../public/src/auth/access.js";
 
 function memoryStorage() {
   const data = new Map();

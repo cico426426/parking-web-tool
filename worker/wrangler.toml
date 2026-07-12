@@ -2,10 +2,6 @@ name = "parking-recommendation"
 main = "index.js"
 compatibility_date = "2026-07-12"
 
-[assets]
-directory = "../"
-binding = "ASSETS"
-
 [observability]
 enabled = true
 

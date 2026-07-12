@@ -2,8 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fixture from "../fixtures/tdx-taoyuan-sample.json" with { type: "json" };
 
-import { buildAvailabilityMap, normalizeCarParks } from "../../src/parking/normalize.js";
-import { rankRecommendations } from "../../src/parking/rank.js";
+import { buildAvailabilityMap, normalizeCarParks } from "../../public/src/parking/normalize.js";
+import { rankRecommendations } from "../../public/src/parking/rank.js";
 
 test("recommendation contract returns ranked recommendation shape", () => {
   const lots = normalizeCarParks(fixture.carParks, "Taoyuan");

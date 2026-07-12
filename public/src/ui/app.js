@@ -255,7 +255,7 @@ async function loadRecommendationsForDestination(destination) {
 
 function loadSnapshotRecommendations(destination) {
   if (!state.data?.parkingLots?.length) {
-    setStatus("目前的 data.js 沒有完整停車場資料，請重新執行 npm run dev。", "warn");
+    setStatus("目前的 data.json 沒有完整停車場資料，請重新執行 npm run dev。", "warn");
     return;
   }
 
@@ -374,10 +374,25 @@ function registerServiceWorker() {
   }
 }
 
-function init() {
+async function loadSnapshotData() {
+  if (state.data) return true;
+
+  try {
+    const response = await fetch("data.json", { cache: "no-store" });
+    if (!response.ok) return false;
+    state.data = await response.json();
+    state.destination = state.data.destination ?? state.destination;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function init() {
   queryElements();
   bindEvents();
   registerServiceWorker();
+  const hasSnapshot = await loadSnapshotData();
 
   if (state.apiBaseUrl && !buildAuthHeaders().Authorization) {
     showAuthPanel();
@@ -385,10 +400,12 @@ function init() {
     hideAuthPanel();
   }
 
-  if (state.data) {
+  if (hasSnapshot) {
     renderRecommendations(state.data);
+  } else if (state.apiBaseUrl) {
+    setStatus("已連線即時模式。解鎖後貼上 Google Maps 連結、地址或店名開始查詢。");
   } else {
-    setStatus("尚未載入 data.js。請先執行 node --env-file=.env fetch-parking.mjs。", "warn");
+    setStatus("尚未載入 data.json。請先執行 node --env-file=.env fetch-parking.mjs。", "warn");
   }
 
   applySharedInput();

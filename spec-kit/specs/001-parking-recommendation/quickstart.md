@@ -49,13 +49,13 @@ Expected result:
 
 ## Scenario 3: Validate Mobile Web MVP With Snapshot Data
 
-After implementation tasks add `index.html` and snapshot generation:
+After implementation tasks add `public/index.html` and snapshot generation:
 
 ```sh
 node --env-file=.env fetch-parking.mjs
 ```
 
-Then open `index.html` in a browser or serve the folder locally if browser fetch behavior requires it.
+Then open `public/index.html` in a browser or serve the folder locally if browser fetch behavior requires it.
 
 Expected result:
 

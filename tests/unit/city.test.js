@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { buildTdxParkingUrls, cityKeyFromText, inferCityFromAddress } from "../../src/parking/city.js";
+import { buildTdxParkingUrls, cityKeyFromText, inferCityFromAddress } from "../../public/src/parking/city.js";
 
 test("cityKeyFromText maps common Taiwan city names to TDX keys", () => {
   assert.equal(cityKeyFromText("臺北市"), "Taipei");

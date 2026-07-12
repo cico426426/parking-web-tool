@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { searchDestinations } from "../../src/search/geocode.js";
+import { searchDestinations } from "../../public/src/search/geocode.js";
 
 test("searchDestinations returns normalized provider results", async () => {
   const result = await searchDestinations("中原大學", {

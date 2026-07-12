@@ -1,6 +1,6 @@
-import { buildTdxParkingUrls } from "./src/parking/city.js";
-import { buildAvailabilityMap, normalizeCarParks } from "./src/parking/normalize.js";
-import { rankRecommendations } from "./src/parking/rank.js";
+import { buildTdxParkingUrls } from "./public/src/parking/city.js";
+import { buildAvailabilityMap, normalizeCarParks } from "./public/src/parking/normalize.js";
+import { rankRecommendations } from "./public/src/parking/rank.js";
 
 const CLIENT_ID = process.env.TDX_ID;
 const CLIENT_SECRET = process.env.TDX_SECRET;
@@ -50,7 +50,7 @@ async function getJson(url, token) {
 function writeDataFile(payload) {
   const serialized = JSON.stringify(payload, null, 2);
   return import("node:fs").then((fs) => {
-    fs.writeFileSync("data.js", `window.PARKING_APP_DATA = ${serialized};\n`);
+    fs.writeFileSync("public/data.json", `${serialized}\n`);
   });
 }
 
@@ -95,7 +95,7 @@ async function main() {
       : "時間未知";
     console.log(`${recommendation.rank}. ${recommendation.parkingLot.name}｜${distance}｜${minutes}｜${spaces}`);
   }
-  console.log("\n已寫出 data.js");
+  console.log("\n已寫出 public/data.json");
 }
 
 function buildWarnings(recommendations) {
