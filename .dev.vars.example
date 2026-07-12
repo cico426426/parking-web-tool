@@ -1,0 +1,7 @@
+TDX_ID=your-tdx-client-id
+TDX_SECRET=your-tdx-client-secret
+OWNER_ACCESS_SECRET=choose-a-private-pin-or-password
+DEFAULT_CITY=Taoyuan
+RATE_LIMIT_MAX=60
+RATE_LIMIT_WINDOW_MS=60000
+SEARCH_USER_AGENT=parking-web-tool/1.0 your-email@example.com

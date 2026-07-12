@@ -75,15 +75,29 @@ MVP deployment target:
 
 ## CLI Deployment
 
+Copy the example frontend config and set your Worker URL after the Worker is deployed:
+
+```sh
+cp public/config.example.js public/config.js
+```
+
 Deploy the Worker first:
 
 ```sh
 cd worker
 npx wrangler login
-npx wrangler deploy
+cd ..
+npm run deploy:worker
+```
+
+Configure Worker secrets:
+
+```sh
+cd worker
 npx wrangler secret put TDX_ID
 npx wrangler secret put TDX_SECRET
 npx wrangler secret put OWNER_ACCESS_SECRET
+cd ..
 ```
 
 Use the Worker URL from the deploy output in `public/config.js`:
@@ -95,7 +109,13 @@ globalThis.PARKING_API_BASE_URL = "https://your-worker.workers.dev";
 Then deploy `public/` to Cloudflare Pages:
 
 ```sh
-npx wrangler pages deploy public --project-name=parking-web-tool
+npm run deploy:pages
+```
+
+After the first setup, normal deploys can use:
+
+```sh
+npm run deploy
 ```
 
 For dashboard Direct Upload, upload the `public/` folder only. Do not upload the repository root.
