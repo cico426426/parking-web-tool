@@ -50,6 +50,7 @@ const CITY_BOUNDS = {
 };
 
 const CITY_INFERENCE_ORDER = ["Taipei", "NewTaipei", "Taoyuan"];
+const CITY_CANDIDATE_PADDING = 0.08;
 
 export function isSupportedCity(city) {
   return Object.hasOwn(CITY_MAPPING, city);
@@ -102,26 +103,45 @@ export function getCityBounds(city) {
 }
 
 export function inferCityFromCoordinates(lat, lng, fallback = "Taoyuan") {
+  return inferCitiesFromCoordinates(lat, lng, fallback)[0] ?? fallback;
+}
+
+export function inferCitiesFromCoordinates(lat, lng, fallback = "Taoyuan") {
+  const matches = matchingCitiesFromCoordinates(lat, lng);
+  if (matches.length) return matches;
+  return fallback ? [fallback] : [];
+}
+
+export function candidateCitiesFromCoordinates(lat, lng, fallback = "Taoyuan") {
+  const strictMatches = matchingCitiesFromCoordinates(lat, lng);
+  const nearbyMatches = matchingCitiesFromCoordinates(lat, lng, CITY_CANDIDATE_PADDING);
+  const matches = [...new Set([...strictMatches, ...nearbyMatches])];
+  if (matches.length) return matches;
+  return fallback ? [fallback] : [];
+}
+
+function matchingCitiesFromCoordinates(lat, lng, padding = 0) {
   const pointLat = Number(lat);
   const pointLng = Number(lng);
 
   if (!Number.isFinite(pointLat) || !Number.isFinite(pointLng)) {
-    return fallback;
+    return [];
   }
 
+  const matches = [];
   for (const city of CITY_INFERENCE_ORDER) {
     const bounds = CITY_BOUNDS[city];
     if (
-      pointLat >= bounds.minLat &&
-      pointLat <= bounds.maxLat &&
-      pointLng >= bounds.minLng &&
-      pointLng <= bounds.maxLng
+      pointLat >= bounds.minLat - padding &&
+      pointLat <= bounds.maxLat + padding &&
+      pointLng >= bounds.minLng - padding &&
+      pointLng <= bounds.maxLng + padding
     ) {
-      return city;
+      matches.push(city);
     }
   }
 
-  return fallback;
+  return matches;
 }
 
 export function buildTdxParkingUrls(city, options = {}) {

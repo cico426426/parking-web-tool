@@ -1,4 +1,4 @@
-import { buildTdxParkingUrls, inferCityFromCoordinates } from "../public/src/parking/city.js";
+import { buildTdxParkingUrls, candidateCitiesFromCoordinates } from "../public/src/parking/city.js";
 import { buildAvailabilityMap, normalizeCarParks } from "../public/src/parking/normalize.js";
 import { rankRecommendations } from "../public/src/parking/rank.js";
 import { searchDestinations } from "../public/src/search/geocode.js";
@@ -105,26 +105,26 @@ async function handleRecommendations(url, env) {
     return errorResponse("INVALID_DESTINATION", "Valid destination coordinates are required.", 400);
   }
 
-  const city = url.searchParams.get("city") || inferCityFromCoordinates(lat, lng, env.DEFAULT_CITY ?? "Taoyuan");
+  const requestedCity = url.searchParams.get("city");
+  const cities = candidateCitiesForDestination(lat, lng, requestedCity, env.DEFAULT_CITY ?? "Taoyuan");
   const limit = Math.min(Number(url.searchParams.get("limit") ?? 3), 5);
   const destination = { id: "request-destination", name: "Selected destination", lat, lng, source: "search" };
-  const key = `recommendations:${city}:${lat.toFixed(5)}:${lng.toFixed(5)}:${limit}`;
+  const key = `recommendations:${cities.join(",")}:${lat.toFixed(5)}:${lng.toFixed(5)}:${limit}`;
   const cached = getCached(key);
   if (cached) return jsonResponse(cached);
 
   const token = await getTdxToken(env);
   const fetchImpl = env.__fetch ?? fetch;
-  const [carParkData, availabilityData] = await fetchParkingData(fetchImpl, token, city, { lat, lng });
+  const { parkingLots, availabilityById } = await fetchParkingDataForCities(fetchImpl, token, cities, { lat, lng });
 
-  const parkingLots = normalizeCarParks(carParkData, city);
   if (!parkingLots.length) {
     return errorResponse("NO_USABLE_PARKING", "No nearby parking lots with usable location data were found.", 404);
   }
 
-  const availabilityById = buildAvailabilityMap(availabilityData);
   const recommendations = rankRecommendations(destination, parkingLots, availabilityById, { limit });
   const payload = {
     destination,
+    cities,
     generatedAt: new Date().toISOString(),
     dataFreshness: "live",
     recommendations,
@@ -134,6 +134,40 @@ async function handleRecommendations(url, env) {
   };
   setCached(key, payload);
   return jsonResponse(payload);
+}
+
+async function fetchParkingDataForCities(fetchImpl, token, cities, destination) {
+  const results = await Promise.allSettled(
+    cities.map(async (city) => {
+      const [carParkData, availabilityData] = await fetchParkingData(fetchImpl, token, city, destination);
+      return {
+        city,
+        parkingLots: normalizeCarParks(carParkData, city),
+        availabilityById: buildAvailabilityMap(availabilityData),
+      };
+    }),
+  );
+
+  const parkingLots = [];
+  const availabilityById = new Map();
+
+  for (const result of results) {
+    if (result.status !== "fulfilled") continue;
+    parkingLots.push(...result.value.parkingLots);
+    for (const [id, availability] of result.value.availabilityById) {
+      availabilityById.set(id, availability);
+    }
+  }
+
+  return { parkingLots, availabilityById };
+}
+
+function candidateCitiesForDestination(lat, lng, preferredCity, fallbackCity) {
+  const cities = [];
+  if (preferredCity) cities.push(preferredCity);
+  cities.push(...candidateCitiesFromCoordinates(lat, lng, fallbackCity));
+  if (fallbackCity) cities.push(fallbackCity);
+  return [...new Set(cities)];
 }
 
 async function fetchParkingData(fetchImpl, token, city, destination) {

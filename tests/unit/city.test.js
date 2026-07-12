@@ -1,7 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { buildTdxParkingUrls, cityKeyFromText, inferCityFromAddress } from "../../public/src/parking/city.js";
+import {
+  buildTdxParkingUrls,
+  candidateCitiesFromCoordinates,
+  cityKeyFromText,
+  inferCitiesFromCoordinates,
+  inferCityFromAddress,
+} from "../../public/src/parking/city.js";
 
 test("cityKeyFromText maps common Taiwan city names to TDX keys", () => {
   assert.equal(cityKeyFromText("臺北市"), "Taipei");
@@ -15,6 +21,14 @@ test("inferCityFromAddress uses geocoder address fields", () => {
   assert.equal(inferCityFromAddress({ city: "臺北市" }), "Taipei");
   assert.equal(inferCityFromAddress({ county: "花蓮縣" }), "HualienCounty");
   assert.equal(inferCityFromAddress({ state: "桃園市" }), "Taoyuan");
+});
+
+test("inferCitiesFromCoordinates returns all matching nearby city candidates", () => {
+  assert.deepEqual(inferCitiesFromCoordinates(25.0413056, 121.4676992), ["NewTaipei", "Taoyuan"]);
+});
+
+test("candidateCitiesFromCoordinates includes nearby border cities for cross-county search", () => {
+  assert.deepEqual(candidateCitiesFromCoordinates(25.0413056, 121.4676992), ["NewTaipei", "Taoyuan", "Taipei"]);
 });
 
 test("buildTdxParkingUrls can request nearby car parks by destination coordinates", () => {
