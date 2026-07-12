@@ -9,15 +9,15 @@ test("distanceMeters returns finite distance for valid coordinates", () => {
   assert.ok(distanceMeters(destination, { lat: 24.958, lng: 121.241 }) < 100);
 });
 
-test("rankRecommendations caps primary results at three", () => {
-  const lots = Array.from({ length: 5 }, (_, index) => ({
+test("rankRecommendations caps primary results at ten", () => {
+  const lots = Array.from({ length: 12 }, (_, index) => ({
     id: `P${index}`,
     name: `P${index}`,
     lat: 24.9575 + index * 0.001,
     lng: 121.2408,
   }));
 
-  assert.equal(rankRecommendations(destination, lots, new Map()).length, 3);
+  assert.equal(rankRecommendations(destination, lots, new Map()).length, 10);
 });
 
 test("rankRecommendations prefers available spaces over nearby full lots", () => {

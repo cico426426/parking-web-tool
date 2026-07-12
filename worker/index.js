@@ -126,7 +126,7 @@ async function handleRecommendations(url, env) {
 
   const requestedCity = url.searchParams.get("city");
   const cities = await candidateCitiesForDestination(lat, lng, requestedCity, env);
-  const limit = Math.min(Number(url.searchParams.get("limit") ?? 3), 5);
+  const limit = Math.min(Number(url.searchParams.get("limit") ?? 10), 10);
   const destination = { id: "request-destination", name: "Selected destination", lat, lng, source: "search" };
   const key = `recommendations:${cities.join(",")}:${lat.toFixed(5)}:${lng.toFixed(5)}:${limit}`;
   const cached = getCached(key);

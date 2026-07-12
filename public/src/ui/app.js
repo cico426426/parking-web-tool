@@ -18,6 +18,8 @@ const state = {
   apiBaseUrl: globalThis.PARKING_API_BASE_URL ?? "",
 };
 
+const RECOMMENDATION_LIMIT = 10;
+
 const elements = {};
 
 function queryElements() {
@@ -46,6 +48,50 @@ function formatDistance(meters) {
   return `${Math.round(meters)} m`;
 }
 
+function formatReason(reason) {
+  const labels = {
+    nearby: "離目的地近",
+    "unknown availability": "空位未知",
+    "has spaces": "有即時空位",
+    "reported full": "顯示已滿",
+    "reported closed": "未開放",
+    "availability uncertain": "空位資料不確定",
+  };
+  return labels[reason] ?? reason;
+}
+
+function formatUpdatedAt(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return String(value);
+  return date.toLocaleString("zh-TW", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function detailRows(lot, availability) {
+  return [
+    ["地址", lot.address],
+    ["費率", lot.feeSummary],
+    ["總車位", Number.isFinite(lot.totalSpaces) ? `${lot.totalSpaces} 位` : ""],
+    ["空位更新", formatUpdatedAt(availability?.updatedAt)],
+    ["資料更新", formatUpdatedAt(lot.sourceUpdatedAt)],
+  ]
+    .filter(([, value]) => value !== null && value !== undefined && value !== "")
+    .map(
+      ([label, value]) => `
+        <div class="detail-row">
+          <dt>${escapeHtml(label)}</dt>
+          <dd>${escapeHtml(value)}</dd>
+        </div>
+      `,
+    )
+    .join("");
+}
+
 function setStatus(message, type = "info") {
   elements.status.textContent = message;
   elements.status.classList.toggle("warn", type === "warn");
@@ -56,11 +102,12 @@ export function recommendationHtml(recommendation) {
   const availability = formatAvailability(recommendation.availability);
   const distance = formatDistance(recommendation.distanceMeters);
   const minutes = recommendation.timeEstimateMinutes
-    ? `${recommendation.timeEstimateMinutes} 分鐘估計`
+    ? `步行約 ${recommendation.timeEstimateMinutes} 分鐘`
     : "時間未知";
   const reasons = recommendation.reasons
-    .map((reason) => `<span class="reason">${escapeHtml(reason)}</span>`)
+    .map((reason) => `<span class="reason">${escapeHtml(formatReason(reason))}</span>`)
     .join("");
+  const details = detailRows(lot, recommendation.availability);
 
   return `
     <article class="recommendation">
@@ -71,6 +118,7 @@ export function recommendationHtml(recommendation) {
           <p class="meta">${availability} · ${distance} · ${minutes}</p>
         </div>
       </div>
+      ${details ? `<dl class="details">${details}</dl>` : ""}
       <div class="reason-row">${reasons}</div>
       <div class="nav-row">
         <a class="nav-button" href="${recommendation.navigationUrl}" target="_blank" rel="noreferrer">導航過去</a>
@@ -232,7 +280,7 @@ async function loadRecommendationsForDestination(destination) {
   const params = new URLSearchParams({
     lat: destination.lat,
     lng: destination.lng,
-    limit: "3",
+    limit: String(RECOMMENDATION_LIMIT),
   });
   if (destination.cityKey) params.set("city", destination.cityKey);
   const response = await fetch(`${state.apiBaseUrl}/api/recommendations?${params}`, {
@@ -263,7 +311,7 @@ function loadSnapshotRecommendations(destination) {
     { id: destination.name, ...destination },
     state.data.parkingLots,
     state.data.availability ?? {},
-    { limit: 3 },
+    { limit: RECOMMENDATION_LIMIT },
   );
   renderRecommendations({
     ...state.data,

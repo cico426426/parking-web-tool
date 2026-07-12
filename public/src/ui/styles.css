@@ -167,6 +167,30 @@ h2 {
   margin-bottom: 12px;
 }
 
+.details {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.detail-row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.detail-row dt,
+.detail-row dd {
+  margin: 0;
+}
+
+.detail-row dt {
+  color: var(--ink);
+  font-weight: 700;
+}
+
 .reason-row {
   display: flex;
   flex-wrap: wrap;
