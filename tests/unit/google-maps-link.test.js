@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   destinationFromUrl,
+  googleMapsQueryFromUrl,
   isGoogleMapsUrl,
   parseGoogleMapsCoordinates,
   placeNameFromGoogleMapsUrl,
@@ -36,6 +37,22 @@ test("parseGoogleMapsCoordinates supports Maps URL query coordinates", () => {
   assert.deepEqual(parseGoogleMapsCoordinates(url), { lat: 24.9575, lng: 121.2408 });
 });
 
+test("parseGoogleMapsCoordinates supports preview pb longitude-latitude pairs", () => {
+  const html = 'href="/maps/preview/place?q=example&amp;pb=%211m15%213m12%211m3%211d28918%212d121.46769920000001%213d25.041305599999994"';
+
+  assert.deepEqual(parseGoogleMapsCoordinates(html), {
+    lat: 25.041305599999994,
+    lng: 121.46769920000001,
+  });
+});
+
+test("googleMapsQueryFromUrl reads address query links from mobile sharing", () => {
+  const url =
+    "https://www.google.com/maps?q=242%E6%96%B0%E5%8C%97%E5%B8%82%E6%96%B0%E8%8E%8A%E5%8D%80%E4%B8%AD%E5%B9%B3%E8%B7%AF138%E8%99%9F+Sin+Ma+Express&ftid=example";
+
+  assert.equal(googleMapsQueryFromUrl(url), "242新北市新莊區中平路138號 Sin Ma Express");
+});
+
 test("resolveGoogleMapsLink follows a short Google Maps redirect", async () => {
   const destination = await resolveGoogleMapsLink("https://maps.app.goo.gl/example", {
     fetchImpl: async () => new Response("", { status: 200, headers: {} }),
@@ -52,6 +69,42 @@ test("resolveGoogleMapsLink follows a short Google Maps redirect", async () => {
 
   assert.equal(resolvedDestination.name, "三重鴨霸王");
   assert.equal(resolvedDestination.lat, 25.0779507);
+});
+
+test("resolveGoogleMapsLink geocodes mobile shared query links when no coordinates are present", async () => {
+  const resolvedDestination = await resolveGoogleMapsLink("https://maps.app.goo.gl/example", {
+    fetchImpl: async () => ({
+      url: "https://www.google.com/maps?q=242%E6%96%B0%E5%8C%97%E5%B8%82%E6%96%B0%E8%8E%8A%E5%8D%80%E4%B8%AD%E5%B9%B3%E8%B7%AF138%E8%99%9F+Sin+Ma+Express&ftid=example",
+      text: async () => "",
+    }),
+    geocodeImpl: async (query) => ({
+      results: [
+        {
+          label: query,
+          lat: 25.0478,
+          lng: 121.444,
+          cityKey: "NewTaipei",
+        },
+      ],
+    }),
+  });
+
+  assert.equal(resolvedDestination.name, "242新北市新莊區中平路138號 Sin Ma Express");
+  assert.equal(resolvedDestination.cityKey, "NewTaipei");
+});
+
+test("resolveGoogleMapsLink reads coordinates from mobile share preview html", async () => {
+  const resolvedDestination = await resolveGoogleMapsLink("https://maps.app.goo.gl/example", {
+    fetchImpl: async () => ({
+      url: "https://www.google.com/maps?q=242%E6%96%B0%E5%8C%97%E5%B8%82%E6%96%B0%E8%8E%8A%E5%8D%80%E4%B8%AD%E5%B9%B3%E8%B7%AF138%E8%99%9F+Sin+Ma+Express&ftid=example",
+      text: async () =>
+        'href="/maps/preview/place?q=example&amp;pb=%211m15%213m12%211m3%211d28918%212d121.46769920000001%213d25.041305599999994"',
+    }),
+  });
+
+  assert.equal(resolvedDestination.name, "Google Maps 分享位置");
+  assert.equal(resolvedDestination.lat, 25.041305599999994);
+  assert.equal(resolvedDestination.lng, 121.46769920000001);
 });
 
 test("isGoogleMapsUrl rejects non-Google URLs", () => {

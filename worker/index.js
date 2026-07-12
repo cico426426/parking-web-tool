@@ -49,6 +49,12 @@ async function handleMapUrl(url, env) {
 
   const destination = await resolveGoogleMapsLink(mapUrl, {
     fetchImpl: env.__fetch ?? fetch,
+    geocodeImpl: (query) =>
+      searchDestinations(query, {
+        limit: 1,
+        fetchImpl: env.__fetch ?? fetch,
+        userAgent: env.SEARCH_USER_AGENT ?? "parking-web-tool/1.0",
+      }),
   });
   if (!destination) {
     return errorResponse("MAP_URL_UNRESOLVED", "Unable to resolve this Google Maps link.", 400);

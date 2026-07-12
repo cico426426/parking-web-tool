@@ -21,12 +21,16 @@ export function isGoogleMapsUrl(text) {
 
 export function parseGoogleMapsCoordinates(rawUrl) {
   const url = normalizeUrl(rawUrl);
-  if (!url) return null;
+  const decoded = decodeGoogleMapsText(url?.href ?? rawUrl);
 
-  const decoded = decodeURIComponent(url.href);
   const placeCoordinates = decoded.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
   if (placeCoordinates) {
     return toCoordinates(placeCoordinates[1], placeCoordinates[2]);
+  }
+
+  const previewCoordinates = decoded.match(/!2d(-?\d+(?:\.\d+)?)!3d(-?\d+(?:\.\d+)?)/);
+  if (previewCoordinates) {
+    return toCoordinates(previewCoordinates[2], previewCoordinates[1]);
   }
 
   const viewportCoordinates = decoded.match(/\/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
@@ -34,6 +38,7 @@ export function parseGoogleMapsCoordinates(rawUrl) {
     return toCoordinates(viewportCoordinates[1], viewportCoordinates[2]);
   }
 
+  if (!url) return null;
   for (const param of ["query", "q", "destination"]) {
     const coordinates = coordinatesFromText(url.searchParams.get(param));
     if (coordinates) return coordinates;
@@ -47,9 +52,18 @@ export function placeNameFromGoogleMapsUrl(rawUrl) {
   if (!url) return "";
 
   const placeMatch = url.pathname.match(/\/maps\/place\/([^/]+)/);
-  if (!placeMatch) return "";
+  if (!placeMatch) return googleMapsQueryFromUrl(rawUrl);
 
   return decodeURIComponent(placeMatch[1]).replaceAll("+", " ").trim();
+}
+
+export function googleMapsQueryFromUrl(rawUrl) {
+  const url = normalizeUrl(rawUrl);
+  if (!url) return "";
+
+  return String(url.searchParams.get("q") ?? url.searchParams.get("query") ?? "")
+    .replaceAll("+", " ")
+    .trim();
 }
 
 export async function resolveGoogleMapsLink(text, options = {}) {
@@ -68,10 +82,12 @@ export async function resolveGoogleMapsLink(text, options = {}) {
   if (resolved) return resolved;
 
   if (typeof response.text === "function") {
-    return destinationFromUrl(await response.text());
+    const body = await response.text();
+    const bodyDestination = destinationFromUrl(body);
+    if (bodyDestination) return bodyDestination;
   }
 
-  return null;
+  return geocodeGoogleMapsQuery(resolvedUrl, options);
 }
 
 export function destinationFromUrl(rawUrl) {
@@ -93,6 +109,25 @@ function isShortGoogleMapsUrl(rawUrl) {
   return url?.hostname === "maps.app.goo.gl";
 }
 
+async function geocodeGoogleMapsQuery(rawUrl, options) {
+  if (typeof options.geocodeImpl !== "function") return null;
+
+  const query = googleMapsQueryFromUrl(rawUrl);
+  if (!query) return null;
+
+  const payload = await options.geocodeImpl(query);
+  const result = payload?.results?.[0] ?? payload?.[0] ?? null;
+  if (!result || !Number.isFinite(result.lat) || !Number.isFinite(result.lng)) return null;
+
+  return {
+    name: result.label ?? query,
+    lat: result.lat,
+    lng: result.lng,
+    cityKey: result.cityKey ?? cityKeyFromText(query) ?? inferCityFromCoordinates(result.lat, result.lng, null),
+    source: "google-maps-link",
+  };
+}
+
 function normalizeUrl(rawUrl) {
   try {
     return new URL(cleanUrl(rawUrl));
@@ -103,6 +138,15 @@ function normalizeUrl(rawUrl) {
 
 function cleanUrl(rawUrl) {
   return String(rawUrl ?? "").trim().replace(/[)\].,，。]+$/, "");
+}
+
+function decodeGoogleMapsText(value) {
+  const text = String(value ?? "").replaceAll("&amp;", "&");
+  try {
+    return decodeURIComponent(text);
+  } catch {
+    return text.replaceAll("%21", "!");
+  }
 }
 
 function coordinatesFromText(text) {

@@ -38,3 +38,65 @@ test("/api/resolve-map-url resolves a Google Maps short link", async () => {
   assert.equal(body.destination.name, "三重鴨霸王");
   assert.equal(body.destination.cityKey, "NewTaipei");
 });
+
+test("/api/resolve-map-url geocodes mobile shared links without coordinates", async () => {
+  const env = {
+    OWNER_ACCESS_SECRET: "1234",
+    RATE_LIMIT_MAX: "100",
+    __fetch: async (url) => {
+      const href = String(url);
+      if (href.includes("nominatim")) {
+        return new Response(
+          JSON.stringify([
+            {
+              place_id: 1,
+              name: "Sin Ma Express",
+              display_name: "Sin Ma Express, 新莊區, 新北市",
+              lat: "25.0478",
+              lon: "121.444",
+              address: { city: "新北市" },
+            },
+          ]),
+        );
+      }
+      return {
+        url: "https://www.google.com/maps?q=242%E6%96%B0%E5%8C%97%E5%B8%82%E6%96%B0%E8%8E%8A%E5%8D%80%E4%B8%AD%E5%B9%B3%E8%B7%AF138%E8%99%9F+Sin+Ma+Express&ftid=example",
+        text: async () => "",
+      };
+    },
+  };
+  const response = await worker.fetch(
+    new Request("https://app.test/api/resolve-map-url?url=https%3A%2F%2Fmaps.app.goo.gl%2Fpreview-example", {
+      headers: { Authorization: "Bearer 1234" },
+    }),
+    env,
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.destination.name, "Sin Ma Express");
+  assert.equal(body.destination.cityKey, "NewTaipei");
+});
+
+test("/api/resolve-map-url reads coordinates from mobile share preview html", async () => {
+  const env = {
+    OWNER_ACCESS_SECRET: "1234",
+    RATE_LIMIT_MAX: "100",
+    __fetch: async () => ({
+      url: "https://www.google.com/maps?q=242%E6%96%B0%E5%8C%97%E5%B8%82%E6%96%B0%E8%8E%8A%E5%8D%80%E4%B8%AD%E5%B9%B3%E8%B7%AF138%E8%99%9F+Sin+Ma+Express&ftid=example",
+      text: async () =>
+        'href="/maps/preview/place?q=example&amp;pb=%211m15%213m12%211m3%211d28918%212d121.46769920000001%213d25.041305599999994"',
+    }),
+  };
+  const response = await worker.fetch(
+    new Request("https://app.test/api/resolve-map-url?url=https%3A%2F%2Fmaps.app.goo.gl%2Fmobile-example", {
+      headers: { Authorization: "Bearer 1234" },
+    }),
+    env,
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.destination.lat, 25.041305599999994);
+  assert.equal(body.destination.lng, 121.46769920000001);
+});
