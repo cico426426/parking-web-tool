@@ -36,7 +36,7 @@ You can also paste a Google Maps share link into the search box. Full Google Map
 The intended deployed flow supports Taiwan restaurants, attractions, and addresses by:
 
 1. Searching the destination text or resolving a pasted Google Maps share link.
-2. Reading the returned city/county from the geocoder result.
+2. Reverse geocoding the destination coordinates to determine the current city/county.
 3. Converting it to a TDX city key such as `Taipei`, `NewTaipei`, or `Taoyuan`.
 4. Asking the Worker to fetch nearby TDX car parks with the destination coordinates.
 5. Falling back to city-wide parking data if a nearby TDX query returns no usable lots.

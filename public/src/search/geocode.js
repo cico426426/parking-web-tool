@@ -1,6 +1,7 @@
 import { inferCityFromAddress } from "../parking/city.js";
 
 const DEFAULT_ENDPOINT = "https://nominatim.openstreetmap.org/search";
+const DEFAULT_REVERSE_ENDPOINT = "https://nominatim.openstreetmap.org/reverse";
 
 export async function searchDestinations(query, options = {}) {
   const trimmed = String(query ?? "").trim();
@@ -31,6 +32,43 @@ export async function searchDestinations(query, options = {}) {
   return {
     query: trimmed,
     results,
+    attribution: "Search data © OpenStreetMap contributors",
+  };
+}
+
+export async function reverseGeocodeCity(lat, lng, options = {}) {
+  const pointLat = Number(lat);
+  const pointLng = Number(lng);
+  if (!Number.isFinite(pointLat) || !Number.isFinite(pointLng)) {
+    return { cityKey: null, address: {}, attribution: "" };
+  }
+
+  const fetchImpl = options.fetchImpl ?? fetch;
+  const endpoint = options.endpoint ?? DEFAULT_REVERSE_ENDPOINT;
+  const url = new URL(endpoint);
+  url.searchParams.set("lat", String(pointLat));
+  url.searchParams.set("lon", String(pointLng));
+  url.searchParams.set("format", "jsonv2");
+  url.searchParams.set("addressdetails", "1");
+  url.searchParams.set("zoom", String(options.zoom ?? 10));
+  url.searchParams.set("layer", "address");
+  if (options.acceptLanguage) url.searchParams.set("accept-language", options.acceptLanguage);
+
+  const response = await fetchImpl(url, {
+    headers: buildHeaders(options),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Reverse geocoder failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const address = data.address ?? {};
+
+  return {
+    cityKey: inferCityFromAddress(address),
+    address,
+    displayName: data.display_name ?? "",
     attribution: "Search data © OpenStreetMap contributors",
   };
 }

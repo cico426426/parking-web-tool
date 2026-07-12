@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { searchDestinations } from "../../public/src/search/geocode.js";
+import { reverseGeocodeCity, searchDestinations } from "../../public/src/search/geocode.js";
 
 test("searchDestinations returns normalized provider results", async () => {
   const result = await searchDestinations("中原大學", {
@@ -40,4 +40,24 @@ test("searchDestinations throws on provider failure", async () => {
       }),
     /Search provider failed/,
   );
+});
+
+test("reverseGeocodeCity maps coordinate address to city key", async () => {
+  const result = await reverseGeocodeCity(24.1477, 120.6736, {
+    fetchImpl: async (url) => {
+      const reverseUrl = new URL(String(url));
+      assert.equal(reverseUrl.pathname, "/reverse");
+      assert.equal(reverseUrl.searchParams.get("format"), "jsonv2");
+      assert.equal(reverseUrl.searchParams.get("addressdetails"), "1");
+
+      return new Response(
+        JSON.stringify({
+          display_name: "台中市西區公益路",
+          address: { city: "臺中市" },
+        }),
+      );
+    },
+  });
+
+  assert.equal(result.cityKey, "Taichung");
 });

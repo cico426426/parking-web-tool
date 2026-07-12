@@ -1,7 +1,7 @@
 import { buildTdxParkingUrls, candidateCitiesFromCoordinates } from "../public/src/parking/city.js";
 import { buildAvailabilityMap, normalizeCarParks } from "../public/src/parking/normalize.js";
 import { rankRecommendations } from "../public/src/parking/rank.js";
-import { searchDestinations } from "../public/src/search/geocode.js";
+import { reverseGeocodeCity, searchDestinations } from "../public/src/search/geocode.js";
 import { resolveGoogleMapsLink } from "../public/src/search/google-maps-link.js";
 import { errorResponse, jsonResponse, optionsResponse } from "./response.js";
 
@@ -106,7 +106,7 @@ async function handleRecommendations(url, env) {
   }
 
   const requestedCity = url.searchParams.get("city");
-  const cities = candidateCitiesForDestination(lat, lng, requestedCity, env.DEFAULT_CITY ?? "Taoyuan");
+  const cities = await candidateCitiesForDestination(lat, lng, requestedCity, env);
   const limit = Math.min(Number(url.searchParams.get("limit") ?? 3), 5);
   const destination = { id: "request-destination", name: "Selected destination", lat, lng, source: "search" };
   const key = `recommendations:${cities.join(",")}:${lat.toFixed(5)}:${lng.toFixed(5)}:${limit}`;
@@ -162,12 +162,38 @@ async function fetchParkingDataForCities(fetchImpl, token, cities, destination) 
   return { parkingLots, availabilityById };
 }
 
-function candidateCitiesForDestination(lat, lng, preferredCity, fallbackCity) {
+async function candidateCitiesForDestination(lat, lng, preferredCity, env) {
   const cities = [];
   if (preferredCity) cities.push(preferredCity);
-  cities.push(...candidateCitiesFromCoordinates(lat, lng, fallbackCity));
-  if (fallbackCity) cities.push(fallbackCity);
+
+  const reverseCity = await reverseCityForCoordinates(lat, lng, env);
+  if (reverseCity) cities.push(reverseCity);
+
+  cities.push(...candidateCitiesFromCoordinates(lat, lng, null));
+
+  const fallbackCity = env.DEFAULT_CITY ?? "Taoyuan";
+  if (!cities.length && fallbackCity) cities.push(fallbackCity);
+
   return [...new Set(cities)];
+}
+
+async function reverseCityForCoordinates(lat, lng, env) {
+  const key = `reverse-city:${Number(lat).toFixed(5)}:${Number(lng).toFixed(5)}`;
+  const cached = getCached(key);
+  if (cached !== null) return cached;
+
+  try {
+    const payload = await reverseGeocodeCity(lat, lng, {
+      fetchImpl: env.__fetch ?? fetch,
+      userAgent: env.SEARCH_USER_AGENT ?? "parking-web-tool/1.0",
+      acceptLanguage: "zh-TW,zh,en",
+    });
+    setCached(key, payload.cityKey ?? "", 3600000);
+    return payload.cityKey;
+  } catch {
+    setCached(key, "", 300000);
+    return null;
+  }
 }
 
 async function fetchParkingData(fetchImpl, token, city, destination) {
