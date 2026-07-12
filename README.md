@@ -1,6 +1,6 @@
-# Parking App
+# 停哪好
 
-Private mobile web tool for choosing where to park near a destination.
+Private mobile web tool/PWA for choosing where to park near a destination.
 
 ## Local Setup
 
@@ -19,7 +19,7 @@ npm run dev
 
 The snapshot includes Taoyuan parking lots and availability. After it is generated, the web page can re-rank the same parking data for another searched destination without calling TDX again.
 
-Open the static app:
+Open the static web tool:
 
 ```sh
 npm run serve

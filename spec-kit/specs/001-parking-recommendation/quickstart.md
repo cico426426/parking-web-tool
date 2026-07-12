@@ -84,7 +84,7 @@ After Worker implementation tasks:
 2. Configure the private owner PIN/password or derived access secret as a Worker environment variable.
 3. Deploy or run the Worker locally.
 4. Point the frontend API base URL to the Worker.
-5. Open the web app on the owner's device and enter the PIN/password once.
+5. Open the web tool on the owner's device and enter the PIN/password once.
 6. Search a supported destination and request recommendations.
 
 Expected result:

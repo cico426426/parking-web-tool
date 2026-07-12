@@ -1,8 +1,8 @@
 # Contract: Parking Recommendation API
 
-This contract describes the browser-facing interfaces for the mobile parking recommendation app. It applies whether the data comes from a local generated snapshot or a live Worker proxy.
+This contract describes the browser-facing interfaces for the mobile parking recommendation web tool/PWA. It applies whether the data comes from a local generated snapshot or a live Worker proxy.
 
-Live Worker endpoints are private by default. The user should not manually add request headers. Instead, the web app shows a one-time PIN/password unlock screen on a new device, remembers successful access locally, and automatically authorizes later live API requests before the Worker calls TDX, geocoding, or any other quota-limited provider.
+Live Worker endpoints are private by default. The user should not manually add request headers. Instead, the web tool shows a one-time PIN/password unlock screen on a new device, remembers successful access locally, and automatically authorizes later live API requests before the Worker calls TDX, geocoding, or any other quota-limited provider.
 
 ## Authentication
 
@@ -16,10 +16,10 @@ Authorization: Bearer <owner-access-token>
 
 Rules:
 
-- The user enters the PIN/password in the app UI, not in developer tools or request headers.
-- The app stores remembered access locally on that device after successful unlock.
-- The app automatically attaches the internal authorization header for live requests.
-- The app provides a "lock this device" action that clears remembered access.
+- The user enters the PIN/password in the web tool UI, not in developer tools or request headers.
+- The web tool stores remembered access locally on that device after successful unlock.
+- The web tool automatically attaches the internal authorization header for live requests.
+- The web tool provides a "lock this device" action that clears remembered access.
 - A `401 Unauthorized` response clears remembered access and returns the UI to the unlock screen.
 - Reject missing or invalid tokens with `401 Unauthorized`.
 - Reject requests before calling external quota-limited APIs.
@@ -206,4 +206,4 @@ Input:
 
 Output:
 
-- Google Maps directions URL suitable for opening in a browser or map app.
+- Google Maps directions URL suitable for opening in a browser or map/navigation app.

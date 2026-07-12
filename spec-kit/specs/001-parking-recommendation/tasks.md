@@ -124,9 +124,9 @@
 
 ## Phase 6: User Story 4 - Use A Shared Place As Input (Priority: P4)
 
-**Goal**: An installed web app can receive shared place text or URLs where supported and convert them into a destination search flow.
+**Goal**: An installed PWA can receive shared place text or URLs where supported and convert them into a destination search flow.
 
-**Independent Test**: Share a place from a supported mobile environment into the app and verify the app pre-fills or resolves the destination, or falls back to manual search.
+**Independent Test**: Share a place from a supported mobile environment into the web tool and verify the PWA pre-fills or resolves the destination, or falls back to manual search.
 
 ### Tests for User Story 4
 
@@ -135,7 +135,7 @@
 ### Implementation for User Story 4
 
 - [X] T044 [US4] Add PWA manifest with `share_target` configuration in `manifest.webmanifest`
-- [X] T045 [US4] Add service worker shell for installed app and share-target handoff in `service-worker.js`
+- [X] T045 [US4] Add service worker shell for installed PWA and share-target handoff in `service-worker.js`
 - [X] T046 [US4] Implement shared text and URL parsing in `src/search/share-target.js`
 - [X] T047 [US4] Connect shared input prefill and fallback behavior in `src/ui/app.js`
 - [X] T048 [US4] Add install/share-target notes to `README.md`

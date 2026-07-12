@@ -1,7 +1,7 @@
 {
-  "name": "parking-app",
+  "name": "parking-web-tool",
   "version": "1.0.0",
-  "description": "",
+  "description": "Private mobile web tool for parking recommendations",
   "type": "module",
   "main": "src/ui/app.js",
   "scripts": {

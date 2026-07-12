@@ -51,7 +51,7 @@
 
 ## Decision: Treat PWA share target as post-MVP
 
-**Rationale**: The ideal workflow is sharing a place from Google Maps into the app, but web share target support is limited/experimental and requires the PWA to be installed. It should follow after the basic search-and-recommend workflow works.
+**Rationale**: The ideal workflow is sharing a place from Google Maps into the parking web tool, but web share target support is limited/experimental and requires the PWA to be installed. It should follow after the basic search-and-recommend workflow works.
 
 **Alternatives considered**:
 
@@ -60,7 +60,7 @@
 
 ## Decision: Use Cloudflare Worker as the live-data proxy when moving beyond local snapshots
 
-**Rationale**: Browser code must not expose TDX credentials. A small edge proxy can obtain TDX data using server-side secrets, normalize or forward it, and add CORS headers for the web app.
+**Rationale**: Browser code must not expose TDX credentials. A small edge proxy can obtain TDX data using server-side secrets, normalize or forward it, and add CORS headers for the web tool.
 
 **Alternatives considered**:
 

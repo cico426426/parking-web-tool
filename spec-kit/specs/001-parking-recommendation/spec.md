@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "建立一個停車場查詢工具，可以抓取停車場資訊並顯示可用車位與到達所需要的時間。我希望我的這個專案能用在 Google Maps 上，使用場景是我用手機找景點時，能利用這個 side project 快速找到停車位。手機上看到一個景點，想知道停哪，打開 App 或網站，輸入/選擇那個景點，直接顯示『停這三個』，點一下跳出 Google Maps 導航。Google Maps 不必鑲在一起，像輔助工具。搜尋框可自動補完並得到座標；免費替代可接受；手機分享鍵與 Google Maps 分享到 App/網頁是接近理想場景但可作後續；距離或許可替換成 Google Maps API。"
+**Input**: User description: "建立一個停車場查詢工具，可以抓取停車場資訊並顯示可用車位與到達所需要的時間。我希望我的這個專案能用在 Google Maps 上，使用場景是我用手機找景點時，能利用這個 side project 快速找到停車位。手機上看到一個景點，想知道停哪，打開私人手機網頁工具，輸入/選擇那個景點，直接顯示『停這三個』，點一下跳出 Google Maps 導航。Google Maps 不必鑲在一起，像輔助工具。搜尋框可自動補完並得到座標；免費替代可接受；手機分享鍵與 Google Maps 分享到 PWA/網頁是接近理想場景但可作後續；距離或許可替換成 Google Maps API。"
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -16,7 +16,7 @@ As a driver using a phone, I want to enter or choose a destination and immediate
 
 **Why this priority**: This is the core value of the product: it turns destination intent into a short, decision-ready parking recommendation.
 
-**Independent Test**: Can be fully tested by entering a known destination in a supported Taiwan city and verifying that the app returns up to three ranked parking recommendations with name, availability status, distance, and estimated time information.
+**Independent Test**: Can be fully tested by entering a known destination in a supported Taiwan city and verifying that the web tool returns up to three ranked parking recommendations with name, availability status, distance, and estimated time information.
 
 **Acceptance Scenarios**:
 
@@ -32,7 +32,7 @@ As a driver who has chosen one of the recommended parking lots, I want to tap on
 
 **Why this priority**: The recommendation is only useful if it can immediately hand off to the navigation tool the driver already trusts.
 
-**Independent Test**: Can be tested by selecting a recommendation and confirming that the phone opens a navigation-ready route to the chosen parking lot in an external map app.
+**Independent Test**: Can be tested by selecting a recommendation and confirming that the phone opens a navigation-ready route to the chosen parking lot in an external map or navigation app.
 
 **Acceptance Scenarios**:
 
@@ -47,7 +47,7 @@ As a mobile user looking at an attraction or place name, I want destination sear
 
 **Why this priority**: Search convenience makes the tool practical in the real usage context, but the parking recommendation MVP can still be demonstrated with manual destination input.
 
-**Independent Test**: Can be tested by typing a partial place name such as "中原大學" and verifying that the app offers relevant destination choices and uses the selected choice for recommendations.
+**Independent Test**: Can be tested by typing a partial place name such as "中原大學" and verifying that the web tool offers relevant destination choices and uses the selected choice for recommendations.
 
 **Acceptance Scenarios**:
 
@@ -59,16 +59,16 @@ As a mobile user looking at an attraction or place name, I want destination sear
 
 ### User Story 4 - Use A Shared Place As Input (Priority: P4)
 
-As a user already viewing a place in a map app, I want to share that place into this parking tool when supported, so I can skip retyping the destination.
+As a user already viewing a place in a map or navigation app, I want to share that place into this parking web tool when supported, so I can skip retyping the destination.
 
 **Why this priority**: This best matches the ideal "see a place, ask where to park" workflow, but it depends on platform share behavior and can follow after the core mobile web flow works.
 
-**Independent Test**: Can be tested by sharing a place from a mobile map app into the parking tool and verifying that the destination is recognized or the user is asked to confirm it.
+**Independent Test**: Can be tested by sharing a place from a mobile map or navigation app into the parking web tool and verifying that the destination is recognized or the user is asked to confirm it.
 
 **Acceptance Scenarios**:
 
-1. **Given** the user shares a place into the parking tool from a supported mobile environment, **When** the shared content includes a usable place or location, **Then** the system prepares parking recommendations for that destination.
-2. **Given** the shared content cannot be resolved to a destination, **When** the parking tool opens, **Then** the system asks the user to search or enter the destination manually.
+1. **Given** the user shares a place into the parking web tool from a supported mobile environment, **When** the shared content includes a usable place or location, **Then** the system prepares parking recommendations for that destination.
+2. **Given** the shared content cannot be resolved to a destination, **When** the parking web tool opens, **Then** the system asks the user to search or enter the destination manually.
 
 ### Edge Cases
 
@@ -80,7 +80,7 @@ As a user already viewing a place in a map app, I want to share that place into 
 - User denies current location access or current location is unavailable.
 - Network access fails while searching for destinations or loading parking data.
 - External navigation cannot be opened from the current browser or device context.
-- Someone discovers the deployed web app or API URL and attempts to use it without permission.
+- Someone discovers the deployed web tool or API URL and attempts to use it without permission.
 - The allowed user refreshes or repeats searches rapidly enough to risk external API quota exhaustion.
 
 ## Requirements *(mandatory)*
@@ -102,10 +102,10 @@ As a user already viewing a place in a map app, I want to share that place into 
 - **FR-013**: System MUST restrict live web/API usage to the project owner or explicitly allowed users.
 - **FR-014**: System MUST reject unauthenticated or invalid requests before calling quota-limited external services.
 - **FR-015**: System MUST apply basic request limiting or caching so accidental repeated usage does not quickly exhaust external API quotas.
-- **FR-016**: System MUST let the allowed user unlock the web app with a one-time PIN or password entry on a device, then remember access locally so normal use does not require manually adding tokens or headers.
+- **FR-016**: System MUST let the allowed user unlock the web tool with a one-time PIN or password entry on a device, then remember access locally so normal use does not require manually adding tokens or headers.
 - **FR-017**: System MUST let the user clear remembered access from the device.
 - **FR-018**: System SHOULD support destination autocomplete or suggestion search for common Taiwan place names.
-- **FR-019**: System SHOULD support receiving a shared destination from a mobile map app or browser when the user's platform supports sharing into web apps.
+- **FR-019**: System SHOULD support receiving a shared destination from a mobile map/navigation app or browser when the user's platform supports sharing into PWAs or mobile websites.
 - **FR-020**: System SHOULD allow the recommendation model to evolve later with additional factors such as price, parking lot size, road accessibility, or user preference without changing the user's primary workflow.
 
 ### Key Entities *(include if feature involves data)*
@@ -115,7 +115,7 @@ As a user already viewing a place in a map app, I want to share that place into 
 - **Parking Availability**: Current or recent parking space status associated with a parking lot; includes available spaces, freshness when known, and unavailable-data state.
 - **Recommendation**: A ranked parking option produced for a destination; includes the parking lot, rank, availability summary, distance or proximity, estimated time, and navigation target.
 - **Navigation Handoff**: A user action that opens an external map/navigation experience for a chosen parking lot.
-- **Remembered Access**: A private local device state created after the allowed user enters the correct PIN or password; used by the app to automatically authorize live API requests.
+- **Remembered Access**: A private local device state created after the allowed user enters the correct PIN or password; used by the web tool to automatically authorize live API requests.
 
 ## Success Criteria *(mandatory)*
 
@@ -132,12 +132,12 @@ As a user already viewing a place in a map app, I want to share that place into 
 
 ## Assumptions
 
-- The first usable version targets mobile web usage rather than a native app.
+- The first usable version targets mobile web/PWA usage rather than a native app.
 - The primary geographic focus for the first version is Taiwan, with initial validation around Taoyuan/Zhongli and common urban destinations.
 - The phrase "arrival time" means practical time context for deciding where to park; the first version may show the best available estimate and clearly label when exact route time is not available.
 - External navigation is expected to open in Google Maps when the user's device/browser supports it, while the product itself does not need an embedded Google map.
-- Public or third-party data sources may have incomplete coverage; the app must communicate uncertainty rather than hiding it.
+- Public or third-party data sources may have incomplete coverage; the web tool must communicate uncertainty rather than hiding it.
 - Destination search may use a paid or free provider later; the specification only requires that users can resolve a place name to a location reliably enough for parking recommendations.
-- Receiving shared places from another app is an enhancement after the core search and recommendation workflow is working.
+- Receiving shared places from another map/navigation app is an enhancement after the core search and recommendation workflow is working.
 - The deployed web version is a personal tool by default, not a public service. A full account system is out of scope for the MVP unless the project later expands beyond personal use.
 - The first authentication UX uses a simple PIN/password unlock screen and remembered local access on the owner's device. Manual request headers are an internal implementation detail, not something the user should handle.

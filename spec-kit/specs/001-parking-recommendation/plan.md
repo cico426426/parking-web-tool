@@ -6,7 +6,7 @@
 
 ## Summary
 
-Build a private, mobile-first parking recommendation web app for Taiwan destinations. The MVP turns a selected destination into up to three ranked parking recommendations with availability, distance/time context, and a one-tap Google Maps navigation handoff. The implementation will reuse the existing Node.js TDX parking-data script for the first data pipeline, then move live data access behind a small Cloudflare Worker proxy so credentials are not exposed to the browser and only the owner can consume quota. Destination search starts as a provider-isolated module so the app can use a free geocoder for development and later switch to Google Places if billing is acceptable.
+Build a private, mobile-first parking recommendation web tool/PWA for Taiwan destinations. The MVP turns a selected destination into up to three ranked parking recommendations with availability, distance/time context, and a one-tap Google Maps navigation handoff. The implementation will reuse the existing Node.js TDX parking-data script for the first data pipeline, then move live data access behind a small Cloudflare Worker proxy so credentials are not exposed to the browser and only the owner can consume quota. Destination search starts as a provider-isolated module so the web tool can use a free geocoder for development and later switch to Google Places if billing is acceptable.
 
 ## Technical Context
 
@@ -20,7 +20,7 @@ Build a private, mobile-first parking recommendation web app for Taiwan destinat
 
 **Target Platform**: Mobile web browsers first, desktop browser acceptable for development. Later PWA installation and share target support are enhancements.
 
-**Project Type**: Small web application with a static frontend, local data-fetch script, and optional edge proxy.
+**Project Type**: Small mobile web tool/PWA with a static frontend, local data-fetch script, and optional edge proxy.
 
 **Performance Goals**: Supported destination search to recommendation display in under 15 seconds on normal mobile network; local ranking over city-level parking data completes fast enough to feel immediate after data is loaded.
 
@@ -61,7 +61,7 @@ specs/001-parking-recommendation/
 ```text
 fetch-parking.mjs            # existing local TDX fetch/debug entry point
 data.js                      # generated MVP data snapshot, ignored or regenerated
-index.html                   # mobile web app shell
+index.html                   # mobile web tool shell
 src/
 ├── parking/
 │   ├── normalize.js         # normalize TDX parking and availability records

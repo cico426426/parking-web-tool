@@ -15,6 +15,6 @@ Optional variables:
 - `DEFAULT_CITY`: defaults to `Taoyuan`
 - `RATE_LIMIT_MAX`: defaults to `60`
 - `RATE_LIMIT_WINDOW_MS`: defaults to `60000`
-- `SEARCH_USER_AGENT`: identifies this app when calling geocoding providers
+- `SEARCH_USER_AGENT`: identifies this web tool when calling geocoding providers
 
 The Worker rejects requests without `Authorization: Bearer <OWNER_ACCESS_SECRET>` before it calls TDX or a geocoding provider.
