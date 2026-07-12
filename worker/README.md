@@ -10,6 +10,14 @@ npx wrangler secret put TDX_SECRET
 npx wrangler secret put OWNER_ACCESS_SECRET
 ```
 
+Optional Google Maps link resolver:
+
+```sh
+npx wrangler secret put GOOGLE_MAPS_API_KEY
+```
+
+Set this to a Google Maps Platform key restricted to Places API (New). When present, mobile Google Maps share links that expand to a text query are resolved with Google Places Text Search before falling back to the public geocoder.
+
 Optional variables:
 
 - `DEFAULT_CITY`: defaults to `Taoyuan`

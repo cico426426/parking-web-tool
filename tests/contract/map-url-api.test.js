@@ -78,6 +78,47 @@ test("/api/resolve-map-url geocodes mobile shared links without coordinates", as
   assert.equal(body.destination.cityKey, "NewTaipei");
 });
 
+test("/api/resolve-map-url uses Google Places for mobile shared query links when configured", async () => {
+  const env = {
+    OWNER_ACCESS_SECRET: "1234",
+    RATE_LIMIT_MAX: "100",
+    GOOGLE_MAPS_API_KEY: "google-key",
+    __fetch: async (url, init) => {
+      const href = String(url);
+      if (href.includes("places.googleapis.com")) {
+        assert.equal(init.headers["X-Goog-Api-Key"], "google-key");
+        return new Response(
+          JSON.stringify({
+            places: [
+              {
+                displayName: { text: "文山步道觀景臺" },
+                formattedAddress: "新竹縣竹北市文山步道觀景臺",
+                location: { latitude: 24.8389, longitude: 121.0372 },
+              },
+            ],
+          }),
+        );
+      }
+      return {
+        url: "https://www.google.com/maps?q=302%E6%96%B0%E7%AB%B9%E7%B8%A3%E7%AB%B9%E5%8C%97%E5%B8%82%E6%96%87%E5%B1%B1%E6%AD%A5%E9%81%93%E8%A7%80%E6%99%AF%E8%87%BA&ftid=example",
+        text: async () => "",
+      };
+    },
+  };
+  const response = await worker.fetch(
+    new Request("https://app.test/api/resolve-map-url?url=https%3A%2F%2Fmaps.app.goo.gl%2Fgoogle-places-example", {
+      headers: { Authorization: "Bearer 1234" },
+    }),
+    env,
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.destination.name, "文山步道觀景臺");
+  assert.equal(body.destination.cityKey, "HsinchuCounty");
+  assert.equal(body.destination.lat, 24.8389);
+});
+
 test("/api/resolve-map-url reads coordinates from mobile share preview html", async () => {
   const env = {
     OWNER_ACCESS_SECRET: "1234",

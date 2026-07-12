@@ -1,6 +1,7 @@
 TDX_ID=your-tdx-client-id
 TDX_SECRET=your-tdx-client-secret
 OWNER_ACCESS_SECRET=choose-a-private-pin-or-password
+GOOGLE_MAPS_API_KEY=optional-google-places-api-key
 DEFAULT_CITY=Taoyuan
 RATE_LIMIT_MAX=60
 RATE_LIMIT_WINDOW_MS=60000

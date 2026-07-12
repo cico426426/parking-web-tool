@@ -3,6 +3,7 @@ import { buildAvailabilityMap, normalizeCarParks } from "../public/src/parking/n
 import { rankRecommendations } from "../public/src/parking/rank.js";
 import { reverseGeocodeCity, searchDestinations } from "../public/src/search/geocode.js";
 import { resolveGoogleMapsLink } from "../public/src/search/google-maps-link.js";
+import { searchGooglePlacesText } from "./google-places.js";
 import { errorResponse, jsonResponse, optionsResponse } from "./response.js";
 
 const TOKEN_URL =
@@ -49,12 +50,7 @@ async function handleMapUrl(url, env) {
 
   const destination = await resolveGoogleMapsLink(mapUrl, {
     fetchImpl: env.__fetch ?? fetch,
-    geocodeImpl: (query) =>
-      searchDestinations(query, {
-        limit: 1,
-        fetchImpl: env.__fetch ?? fetch,
-        userAgent: env.SEARCH_USER_AGENT ?? "parking-web-tool/1.0",
-      }),
+    geocodeImpl: (query) => geocodeDestinationQuery(query, env),
   });
   if (!destination) {
     return errorResponse("MAP_URL_UNRESOLVED", "Unable to resolve this Google Maps link.", 400);
@@ -63,6 +59,29 @@ async function handleMapUrl(url, env) {
   const payload = { destination };
   setCached(key, payload);
   return jsonResponse(payload);
+}
+
+async function geocodeDestinationQuery(query, env) {
+  const fetchImpl = env.__fetch ?? fetch;
+
+  if (env.GOOGLE_MAPS_API_KEY) {
+    try {
+      const googlePayload = await searchGooglePlacesText(query, {
+        apiKey: env.GOOGLE_MAPS_API_KEY,
+        fetchImpl,
+        limit: 1,
+      });
+      if (googlePayload.results.length) return googlePayload;
+    } catch {
+      // Keep the old free geocoder as a fallback when Google quota or config is unavailable.
+    }
+  }
+
+  return searchDestinations(query, {
+    limit: 1,
+    fetchImpl,
+    userAgent: env.SEARCH_USER_AGENT ?? "parking-web-tool/1.0",
+  });
 }
 
 function isRateLimited(request, env) {
