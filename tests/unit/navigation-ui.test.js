@@ -13,6 +13,7 @@ test("recommendationHtml includes one-tap navigation and fallback coordinates", 
       address: "桃園市中壢區中北路",
       totalSpaces: 40,
       feeSummary: "每小時 30 元",
+      dataSource: "Google Places",
       sourceUpdatedAt: "2026-07-12T10:20:00+08:00",
     },
     availability: { status: "available", availableSpaces: 3, updatedAt: "2026-07-12T10:30:00+08:00" },
@@ -29,6 +30,7 @@ test("recommendationHtml includes one-tap navigation and fallback coordinates", 
   assert.match(html, /桃園市中壢區中北路/);
   assert.match(html, /每小時 30 元/);
   assert.match(html, /總車位/);
+  assert.match(html, /Google Places/);
   assert.match(html, /24\.95750, 121\.24080/);
 });
 

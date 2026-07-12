@@ -92,6 +92,7 @@ function detailRows(lot, availability) {
     ["地址", lot.address],
     ["費率", lot.feeSummary],
     ["總車位", Number.isFinite(lot.totalSpaces) ? `${lot.totalSpaces} 位` : ""],
+    ["來源", lot.dataSource],
     ["空位更新", formatUpdatedAt(availability?.updatedAt)],
     ["資料更新", formatUpdatedAt(lot.sourceUpdatedAt)],
   ]

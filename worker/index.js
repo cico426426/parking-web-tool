@@ -3,7 +3,7 @@ import { buildAvailabilityMap, normalizeCarParks } from "../public/src/parking/n
 import { rankRecommendations } from "../public/src/parking/rank.js";
 import { reverseGeocodeCity, searchDestinations } from "../public/src/search/geocode.js";
 import { resolveGoogleMapsLink } from "../public/src/search/google-maps-link.js";
-import { searchGooglePlacesText } from "./google-places.js";
+import { searchGoogleParkingNearby, searchGooglePlacesText } from "./google-places.js";
 import { computeWalkingRouteMatrix } from "./google-routes.js";
 import { errorResponse, jsonResponse, optionsResponse } from "./response.js";
 
@@ -135,7 +135,9 @@ async function handleRecommendations(url, env) {
 
   const token = await getTdxToken(env);
   const fetchImpl = env.__fetch ?? fetch;
-  const { parkingLots, availabilityById } = await fetchParkingDataForCities(fetchImpl, token, cities, { lat, lng });
+  const { parkingLots: tdxParkingLots, availabilityById } = await fetchParkingDataForCities(fetchImpl, token, cities, { lat, lng });
+  const googleParkingLots = await fetchGoogleParkingLots({ lat, lng }, cities[0], env);
+  const parkingLots = mergeParkingLots([...tdxParkingLots, ...googleParkingLots]);
 
   if (!parkingLots.length) {
     return errorResponse("NO_USABLE_PARKING", "No nearby parking lots with usable location data were found.", 404);
@@ -155,6 +157,60 @@ async function handleRecommendations(url, env) {
   };
   setCached(key, payload);
   return jsonResponse(payload);
+}
+
+async function fetchGoogleParkingLots(destination, city, env) {
+  if (!env.GOOGLE_MAPS_API_KEY) return [];
+
+  try {
+    return await searchGoogleParkingNearby(destination, {
+      apiKey: env.GOOGLE_MAPS_API_KEY,
+      fetchImpl: env.__fetch ?? fetch,
+      limit: 5,
+      radiusMeters: 1500,
+      city,
+    });
+  } catch {
+    return [];
+  }
+}
+
+function mergeParkingLots(parkingLots) {
+  const merged = [];
+  for (const lot of parkingLots) {
+    if (!lot || merged.some((existing) => isSameParkingLot(existing, lot))) continue;
+    merged.push(lot);
+  }
+  return merged;
+}
+
+function isSameParkingLot(a, b) {
+  if (a.id && b.id && a.id === b.id) return true;
+  const nameA = normalizeName(a.name);
+  const nameB = normalizeName(b.name);
+  if (!nameA || !nameB || nameA !== nameB) return false;
+  return coordinatesClose(a, b, 70);
+}
+
+function normalizeName(name) {
+  return String(name ?? "")
+    .toLowerCase()
+    .replaceAll(/\s+/g, "")
+    .replaceAll(/[()（）\-－_]/g, "");
+}
+
+function coordinatesClose(a, b, maxMeters) {
+  const lat1 = Number(a?.lat);
+  const lng1 = Number(a?.lng);
+  const lat2 = Number(b?.lat);
+  const lng2 = Number(b?.lng);
+  if (![lat1, lng1, lat2, lng2].every(Number.isFinite)) return false;
+
+  const metersPerLat = 111320;
+  const metersPerLng = 111320 * Math.cos(((lat1 + lat2) / 2 / 180) * Math.PI);
+  const dLat = (lat1 - lat2) * metersPerLat;
+  const dLng = (lng1 - lng2) * metersPerLng;
+  return Math.hypot(dLat, dLng) <= maxMeters;
 }
 
 async function enhanceRecommendationsWithWalkingRoutes(destination, recommendations, env) {

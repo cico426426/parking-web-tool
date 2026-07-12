@@ -230,3 +230,85 @@ test("/api/recommendations enriches top candidates with Google walking routes", 
   assert.equal(body.recommendations[0].timeEstimateMinutes, 5);
   assert.ok(requestedUrls.some((url) => url.includes("routes.googleapis.com")));
 });
+
+test("/api/recommendations merges Google parking lots with TDX candidates", async () => {
+  const requestedUrls = [];
+  const env = {
+    OWNER_ACCESS_SECRET: "google-parking-secret",
+    TDX_ID: "id",
+    TDX_SECRET: "secret",
+    RATE_LIMIT_MAX: "100",
+    GOOGLE_MAPS_API_KEY: "google-key",
+    __fetch: async (url, init) => {
+      const href = String(url);
+      requestedUrls.push(href);
+
+      if (href.includes("openid-connect/token")) {
+        return new Response(JSON.stringify({ access_token: "token" }));
+      }
+
+      if (href.includes("places.googleapis.com/v1/places:searchNearby")) {
+        assert.equal(init.headers["X-Goog-Api-Key"], "google-key");
+        const body = JSON.parse(init.body);
+        assert.deepEqual(body.includedTypes, ["parking"]);
+        return new Response(
+          JSON.stringify({
+            places: [
+              {
+                id: "private-parking",
+                displayName: { text: "嘟嘟房停車場-府前廣場站" },
+                formattedAddress: "台北市信義區",
+                location: { latitude: 25.032, longitude: 121.558 },
+                types: ["parking"],
+              },
+            ],
+          }),
+        );
+      }
+
+      if (href.includes("routes.googleapis.com")) {
+        return new Response(
+          JSON.stringify([
+            { originIndex: 0, destinationIndex: 0, duration: "600s", distanceMeters: 700, condition: "ROUTE_EXISTS" },
+            { originIndex: 1, destinationIndex: 0, duration: "300s", distanceMeters: 250, condition: "ROUTE_EXISTS" },
+          ]),
+        );
+      }
+
+      if (href.includes("/CarPark/City/Taipei")) {
+        return new Response(
+          JSON.stringify({
+            CarParks: [
+              {
+                CarParkID: "tdx-parking",
+                CarParkName: { Zh_tw: "公有停車場" },
+                CarParkPosition: { PositionLat: 25.034, PositionLon: 121.559 },
+              },
+            ],
+          }),
+        );
+      }
+
+      if (href.includes("/ParkingAvailability/City/Taipei")) {
+        return new Response(JSON.stringify({ ParkingAvailabilities: [{ CarParkID: "tdx-parking", AvailableSpaces: 3 }] }));
+      }
+
+      return new Response("{}", { status: 404 });
+    },
+  };
+
+  const response = await worker.fetch(
+    new Request("https://app.test/api/recommendations?lat=25.0319&lng=121.558&city=Taipei&limit=5", {
+      headers: { Authorization: "Bearer google-parking-secret" },
+    }),
+    env,
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.ok(body.recommendations.some((item) => item.parkingLot.id === "google:private-parking"));
+  const googleRecommendation = body.recommendations.find((item) => item.parkingLot.id === "google:private-parking");
+  assert.equal(googleRecommendation.parkingLot.dataSource, "Google Places");
+  assert.equal(googleRecommendation.availability.status, "unknown");
+  assert.ok(requestedUrls.some((url) => url.includes("places.googleapis.com/v1/places:searchNearby")));
+});
