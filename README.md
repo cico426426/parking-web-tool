@@ -31,7 +31,7 @@ In local snapshot mode, the destination search uses a public geocoder when avail
 
 You can also paste a Google Maps share link into the search box. Full Google Maps URLs that already contain coordinates can be parsed in the browser. Short links such as `maps.app.goo.gl/...` need the deployed Worker because the server has to follow the redirect first.
 
-For mobile Google Maps share links that expand to a place name or address instead of coordinates, configure `GOOGLE_MAPS_API_KEY` on the Worker. The key should be restricted to Places API (New), and the Worker uses it only for Text Search coordinates.
+For mobile Google Maps share links that expand to a place name or address instead of coordinates, configure `GOOGLE_MAPS_API_KEY` on the Worker. The key should be restricted to Places API (New) and Routes API. The Worker uses Places Text Search for destination coordinates and Routes Compute Route Matrix for walking distance/time on the top parking candidates.
 
 ## Taiwan Address Coverage
 

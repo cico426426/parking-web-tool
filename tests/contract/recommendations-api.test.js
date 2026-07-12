@@ -151,3 +151,82 @@ test("/api/recommendations reverse geocodes destination city when city is omitte
   assert.ok(requestedUrls.some((url) => url.includes("/reverse")));
   assert.ok(requestedUrls.some((url) => url.includes("/CarPark/City/Taichung")));
 });
+
+test("/api/recommendations enriches top candidates with Google walking routes", async () => {
+  const requestedUrls = [];
+  const env = {
+    OWNER_ACCESS_SECRET: "route-secret",
+    TDX_ID: "id",
+    TDX_SECRET: "secret",
+    RATE_LIMIT_MAX: "100",
+    GOOGLE_MAPS_API_KEY: "google-key",
+    __fetch: async (url, init) => {
+      const href = String(url);
+      requestedUrls.push(href);
+
+      if (href.includes("openid-connect/token")) {
+        return new Response(JSON.stringify({ access_token: "token" }));
+      }
+
+      if (href.includes("routes.googleapis.com")) {
+        assert.equal(init.headers["X-Goog-Api-Key"], "google-key");
+        const body = JSON.parse(init.body);
+        assert.equal(body.travelMode, "WALK");
+        assert.equal(body.origins.length, 2);
+        return new Response(
+          JSON.stringify([
+            { originIndex: 0, destinationIndex: 0, duration: "1200s", distanceMeters: 1300, condition: "ROUTE_EXISTS" },
+            { originIndex: 1, destinationIndex: 0, duration: "300s", distanceMeters: 400, condition: "ROUTE_EXISTS" },
+          ]),
+        );
+      }
+
+      if (href.includes("/CarPark/City/NewTaipei")) {
+        return new Response(
+          JSON.stringify({
+            CarParks: [
+              {
+                CarParkID: "near-straight",
+                CarParkName: { Zh_tw: "直線近但繞路" },
+                CarParkPosition: { PositionLat: 25.0414, PositionLon: 121.4678 },
+              },
+              {
+                CarParkID: "far-straight",
+                CarParkName: { Zh_tw: "直線遠但好走" },
+                CarParkPosition: { PositionLat: 25.044, PositionLon: 121.4685 },
+              },
+            ],
+          }),
+        );
+      }
+
+      if (href.includes("/ParkingAvailability/City/NewTaipei")) {
+        return new Response(
+          JSON.stringify({
+            ParkingAvailabilities: [
+              { CarParkID: "near-straight", AvailableSpaces: 5 },
+              { CarParkID: "far-straight", AvailableSpaces: 5 },
+            ],
+          }),
+        );
+      }
+
+      return new Response("{}", { status: 404 });
+    },
+  };
+
+  const response = await worker.fetch(
+    new Request("https://app.test/api/recommendations?lat=25.0423056&lng=121.4686992&city=NewTaipei&limit=5", {
+      headers: { Authorization: "Bearer route-secret" },
+    }),
+    env,
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.recommendations[0].parkingLot.id, "far-straight");
+  assert.equal(body.recommendations[0].distanceMethod, "google-routes-walking");
+  assert.equal(body.recommendations[0].timeEstimateMethod, "google-routes");
+  assert.equal(body.recommendations[0].timeEstimateMinutes, 5);
+  assert.ok(requestedUrls.some((url) => url.includes("routes.googleapis.com")));
+});

@@ -18,7 +18,7 @@ const state = {
   apiBaseUrl: globalThis.PARKING_API_BASE_URL ?? "",
 };
 
-const RECOMMENDATION_LIMIT = 10;
+const RECOMMENDATION_LIMIT = 5;
 
 const elements = {};
 
@@ -48,9 +48,24 @@ function formatDistance(meters) {
   return `${Math.round(meters)} m`;
 }
 
+function formatDistanceSummary(recommendation) {
+  const distance = formatDistance(recommendation.distanceMeters);
+  if (recommendation.distanceMethod === "google-routes-walking") return `步行路線 ${distance}`;
+  return `直線 ${distance}`;
+}
+
+function formatTimeSummary(recommendation) {
+  if (!recommendation.timeEstimateMinutes) return "時間未知";
+  if (recommendation.timeEstimateMethod === "google-routes") {
+    return `Google 步行約 ${recommendation.timeEstimateMinutes} 分鐘`;
+  }
+  return `直線估算步行約 ${recommendation.timeEstimateMinutes} 分鐘`;
+}
+
 function formatReason(reason) {
   const labels = {
     nearby: "離目的地近",
+    "walking route": "Google 步行路線",
     "unknown availability": "空位未知",
     "has spaces": "有即時空位",
     "reported full": "顯示已滿",
@@ -100,10 +115,8 @@ function setStatus(message, type = "info") {
 export function recommendationHtml(recommendation) {
   const lot = recommendation.parkingLot;
   const availability = formatAvailability(recommendation.availability);
-  const distance = formatDistance(recommendation.distanceMeters);
-  const minutes = recommendation.timeEstimateMinutes
-    ? `步行約 ${recommendation.timeEstimateMinutes} 分鐘`
-    : "時間未知";
+  const distance = formatDistanceSummary(recommendation);
+  const minutes = formatTimeSummary(recommendation);
   const reasons = recommendation.reasons
     .map((reason) => `<span class="reason">${escapeHtml(formatReason(reason))}</span>`)
     .join("");

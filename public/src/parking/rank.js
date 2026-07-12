@@ -44,7 +44,7 @@ function availabilityReasons(availability) {
 }
 
 export function rankRecommendations(destination, parkingLots, availabilityById = new Map(), options = {}) {
-  const limit = Math.min(Number(options.limit ?? 10), 10);
+  const limit = Math.min(Number(options.limit ?? 5), 5);
   const candidates = (Array.isArray(parkingLots) ? parkingLots : [])
     .filter((lot) => Number.isFinite(Number(lot.lat)) && Number.isFinite(Number(lot.lng)))
     .map((lot) => {

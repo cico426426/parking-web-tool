@@ -16,7 +16,7 @@ Optional Google Maps link resolver:
 npx wrangler secret put GOOGLE_MAPS_API_KEY
 ```
 
-Set this to a Google Maps Platform key restricted to Places API (New). When present, mobile Google Maps share links that expand to a text query are resolved with Google Places Text Search before falling back to the public geocoder.
+Set this to a Google Maps Platform key restricted to Places API (New) and Routes API. When present, mobile Google Maps share links that expand to a text query are resolved with Google Places Text Search before falling back to the public geocoder. Recommendations also use Routes Compute Route Matrix to replace straight-line estimates with Google walking distance and time for the top candidates.
 
 Optional variables:
 

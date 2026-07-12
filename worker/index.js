@@ -4,6 +4,7 @@ import { rankRecommendations } from "../public/src/parking/rank.js";
 import { reverseGeocodeCity, searchDestinations } from "../public/src/search/geocode.js";
 import { resolveGoogleMapsLink } from "../public/src/search/google-maps-link.js";
 import { searchGooglePlacesText } from "./google-places.js";
+import { computeWalkingRouteMatrix } from "./google-routes.js";
 import { errorResponse, jsonResponse, optionsResponse } from "./response.js";
 
 const TOKEN_URL =
@@ -126,7 +127,7 @@ async function handleRecommendations(url, env) {
 
   const requestedCity = url.searchParams.get("city");
   const cities = await candidateCitiesForDestination(lat, lng, requestedCity, env);
-  const limit = Math.min(Number(url.searchParams.get("limit") ?? 10), 10);
+  const limit = Math.min(Number(url.searchParams.get("limit") ?? 5), 5);
   const destination = { id: "request-destination", name: "Selected destination", lat, lng, source: "search" };
   const key = `recommendations:${cities.join(",")}:${lat.toFixed(5)}:${lng.toFixed(5)}:${limit}`;
   const cached = getCached(key);
@@ -140,7 +141,8 @@ async function handleRecommendations(url, env) {
     return errorResponse("NO_USABLE_PARKING", "No nearby parking lots with usable location data were found.", 404);
   }
 
-  const recommendations = rankRecommendations(destination, parkingLots, availabilityById, { limit });
+  let recommendations = rankRecommendations(destination, parkingLots, availabilityById, { limit });
+  recommendations = await enhanceRecommendationsWithWalkingRoutes(destination, recommendations, env);
   const payload = {
     destination,
     cities,
@@ -153,6 +155,57 @@ async function handleRecommendations(url, env) {
   };
   setCached(key, payload);
   return jsonResponse(payload);
+}
+
+async function enhanceRecommendationsWithWalkingRoutes(destination, recommendations, env) {
+  if (!env.GOOGLE_MAPS_API_KEY || !recommendations.length) return recommendations;
+
+  try {
+    const routeByLotId = await computeWalkingRouteMatrix(
+      destination,
+      recommendations.map((recommendation) => recommendation.parkingLot),
+      {
+        apiKey: env.GOOGLE_MAPS_API_KEY,
+        fetchImpl: env.__fetch ?? fetch,
+      },
+    );
+    if (!routeByLotId.size) return recommendations;
+
+    return recommendations
+      .map((recommendation) => applyWalkingRoute(recommendation, routeByLotId.get(recommendation.parkingLot.id)))
+      .sort((a, b) => routeSortScore(a) - routeSortScore(b))
+      .map((recommendation, index) => ({ ...recommendation, rank: index + 1 }));
+  } catch {
+    return recommendations;
+  }
+}
+
+function applyWalkingRoute(recommendation, route) {
+  if (!route) return recommendation;
+
+  return {
+    ...recommendation,
+    distanceMeters: route.distanceMeters,
+    distanceMethod: "google-routes-walking",
+    timeEstimateMinutes: Math.max(1, Math.round(route.durationSeconds / 60)),
+    timeEstimateMethod: "google-routes",
+    walkingRoute: route,
+    reasons: ["walking route", ...recommendation.reasons],
+  };
+}
+
+function routeSortScore(recommendation) {
+  const routeSeconds = recommendation.walkingRoute?.durationSeconds;
+  const duration = Number.isFinite(routeSeconds) ? routeSeconds : Number.POSITIVE_INFINITY;
+  return duration + routeAvailabilityPenalty(recommendation.availability);
+}
+
+function routeAvailabilityPenalty(availability) {
+  if (!availability || availability.status === "unknown") return 600;
+  if (availability.status === "available") return 0;
+  if (availability.status === "full") return 100000;
+  if (availability.status === "closed") return 200000;
+  return 1000;
 }
 
 async function fetchParkingDataForCities(fetchImpl, token, cities, destination) {
