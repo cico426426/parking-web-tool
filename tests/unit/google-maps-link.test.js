@@ -96,7 +96,7 @@ test("resolveGoogleMapsLink geocodes mobile shared query links when no coordinat
 test("resolveGoogleMapsLink reads coordinates from mobile share preview html", async () => {
   const resolvedDestination = await resolveGoogleMapsLink("https://maps.app.goo.gl/example", {
     fetchImpl: async () => ({
-      url: "https://www.google.com/maps?q=242%E6%96%B0%E5%8C%97%E5%B8%82%E6%96%B0%E8%8E%8A%E5%8D%80%E4%B8%AD%E5%B9%B3%E8%B7%AF138%E8%99%9F+Sin+Ma+Express&ftid=example",
+      url: "https://www.google.com/maps?ftid=example",
       text: async () =>
         'href="/maps/preview/place?q=example&amp;pb=%211m15%213m12%211m3%211d28918%212d121.46769920000001%213d25.041305599999994"',
     }),
@@ -105,6 +105,19 @@ test("resolveGoogleMapsLink reads coordinates from mobile share preview html", a
   assert.equal(resolvedDestination.name, "Google Maps 分享位置");
   assert.equal(resolvedDestination.lat, 25.041305599999994);
   assert.equal(resolvedDestination.lng, 121.46769920000001);
+});
+
+test("resolveGoogleMapsLink does not trust preview coordinates when text query is present", async () => {
+  const resolvedDestination = await resolveGoogleMapsLink("https://maps.app.goo.gl/example", {
+    fetchImpl: async () => ({
+      url: "https://www.google.com/maps?q=302%E6%96%B0%E7%AB%B9%E7%B8%A3%E7%AB%B9%E5%8C%97%E5%B8%82%E6%96%87%E5%B1%B1%E6%AD%A5%E9%81%93%E8%A7%80%E6%99%AF%E8%87%BA&ftid=example",
+      text: async () =>
+        'href="/maps/preview/place?q=example&amp;pb=%211m15%213m12%211m3%211d28918%212d121.46769920000001%213d25.041305599999994"',
+    }),
+    geocodeImpl: async () => ({ results: [] }),
+  });
+
+  assert.equal(resolvedDestination, null);
 });
 
 test("isGoogleMapsUrl rejects non-Google URLs", () => {

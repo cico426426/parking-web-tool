@@ -81,6 +81,11 @@ export async function resolveGoogleMapsLink(text, options = {}) {
   const resolved = destinationFromUrl(resolvedUrl);
   if (resolved) return resolved;
 
+  const hasTextQuery = Boolean(googleMapsQueryFromUrl(resolvedUrl));
+  if (hasTextQuery) {
+    return geocodeGoogleMapsQuery(resolvedUrl, options);
+  }
+
   if (typeof response.text === "function") {
     const body = await response.text();
     const bodyDestination = destinationFromUrl(body);

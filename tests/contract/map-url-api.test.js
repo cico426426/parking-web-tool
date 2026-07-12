@@ -83,7 +83,7 @@ test("/api/resolve-map-url reads coordinates from mobile share preview html", as
     OWNER_ACCESS_SECRET: "1234",
     RATE_LIMIT_MAX: "100",
     __fetch: async () => ({
-      url: "https://www.google.com/maps?q=242%E6%96%B0%E5%8C%97%E5%B8%82%E6%96%B0%E8%8E%8A%E5%8D%80%E4%B8%AD%E5%B9%B3%E8%B7%AF138%E8%99%9F+Sin+Ma+Express&ftid=example",
+      url: "https://www.google.com/maps?ftid=example",
       text: async () =>
         'href="/maps/preview/place?q=example&amp;pb=%211m15%213m12%211m3%211d28918%212d121.46769920000001%213d25.041305599999994"',
     }),
@@ -99,4 +99,32 @@ test("/api/resolve-map-url reads coordinates from mobile share preview html", as
   assert.equal(response.status, 200);
   assert.equal(body.destination.lat, 25.041305599999994);
   assert.equal(body.destination.lng, 121.46769920000001);
+});
+
+test("/api/resolve-map-url does not use stale preview coordinates for text query links", async () => {
+  const env = {
+    OWNER_ACCESS_SECRET: "1234",
+    RATE_LIMIT_MAX: "100",
+    __fetch: async (url) => {
+      const href = String(url);
+      if (href.includes("nominatim")) {
+        return new Response(JSON.stringify([]));
+      }
+      return {
+        url: "https://www.google.com/maps?q=302%E6%96%B0%E7%AB%B9%E7%B8%A3%E7%AB%B9%E5%8C%97%E5%B8%82%E6%96%87%E5%B1%B1%E6%AD%A5%E9%81%93%E8%A7%80%E6%99%AF%E8%87%BA&ftid=example",
+        text: async () =>
+          'href="/maps/preview/place?q=example&amp;pb=%211m15%213m12%211m3%211d28918%212d121.46769920000001%213d25.041305599999994"',
+      };
+    },
+  };
+  const response = await worker.fetch(
+    new Request("https://app.test/api/resolve-map-url?url=https%3A%2F%2Fmaps.app.goo.gl%2Fstale-preview", {
+      headers: { Authorization: "Bearer 1234" },
+    }),
+    env,
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.equal(body.error.code, "MAP_URL_UNRESOLVED");
 });
