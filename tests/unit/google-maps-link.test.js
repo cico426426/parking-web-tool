@@ -46,6 +46,16 @@ test("parseGoogleMapsCoordinates supports preview pb longitude-latitude pairs", 
   });
 });
 
+test("parseGoogleMapsCoordinates supports Maps Lite state coordinates", () => {
+  const html =
+    'window.APP_INITIALIZATION_STATE=[[[57821.12571022015,121.4742528,25.0740736],[0,0,0],[1024,768],13.1],"token"];';
+
+  assert.deepEqual(parseGoogleMapsCoordinates(html), {
+    lat: 25.0740736,
+    lng: 121.4742528,
+  });
+});
+
 test("googleMapsQueryFromUrl reads address query links from mobile sharing", () => {
   const url =
     "https://www.google.com/maps?q=242%E6%96%B0%E5%8C%97%E5%B8%82%E6%96%B0%E8%8E%8A%E5%8D%80%E4%B8%AD%E5%B9%B3%E8%B7%AF138%E8%99%9F+Sin+Ma+Express&ftid=example";
@@ -69,6 +79,29 @@ test("resolveGoogleMapsLink follows a short Google Maps redirect", async () => {
 
   assert.equal(resolvedDestination.name, "三重鴨霸王");
   assert.equal(resolvedDestination.lat, 25.0779507);
+});
+
+test("resolveGoogleMapsLink retries a short link without tracking parameters", async () => {
+  const requestedUrls = [];
+  const resolvedDestination = await resolveGoogleMapsLink("https://maps.app.goo.gl/example?g_st=ic", {
+    fetchImpl: async (url) => {
+      requestedUrls.push(String(url));
+      if (String(url).includes("g_st=ic")) {
+        return {
+          url: String(url),
+          text: async () => "",
+        };
+      }
+
+      return {
+        url: PLACE_URL,
+        text: async () => "",
+      };
+    },
+  });
+
+  assert.deepEqual(requestedUrls, ["https://maps.app.goo.gl/example?g_st=ic", "https://maps.app.goo.gl/example"]);
+  assert.equal(resolvedDestination.name, "三重鴨霸王");
 });
 
 test("resolveGoogleMapsLink geocodes mobile shared query links when no coordinates are present", async () => {
@@ -107,7 +140,7 @@ test("resolveGoogleMapsLink reads coordinates from mobile share preview html", a
   assert.equal(resolvedDestination.lng, 121.46769920000001);
 });
 
-test("resolveGoogleMapsLink does not trust preview coordinates when text query is present", async () => {
+test("resolveGoogleMapsLink falls back to preview coordinates when a shared query cannot be geocoded", async () => {
   const resolvedDestination = await resolveGoogleMapsLink("https://maps.app.goo.gl/example", {
     fetchImpl: async () => ({
       url: "https://www.google.com/maps?q=302%E6%96%B0%E7%AB%B9%E7%B8%A3%E7%AB%B9%E5%8C%97%E5%B8%82%E6%96%87%E5%B1%B1%E6%AD%A5%E9%81%93%E8%A7%80%E6%99%AF%E8%87%BA&ftid=example",
@@ -117,7 +150,9 @@ test("resolveGoogleMapsLink does not trust preview coordinates when text query i
     geocodeImpl: async () => ({ results: [] }),
   });
 
-  assert.equal(resolvedDestination, null);
+  assert.equal(resolvedDestination.name, "302新竹縣竹北市文山步道觀景臺");
+  assert.equal(resolvedDestination.lat, 25.041305599999994);
+  assert.equal(resolvedDestination.lng, 121.46769920000001);
 });
 
 test("isGoogleMapsUrl rejects non-Google URLs", () => {

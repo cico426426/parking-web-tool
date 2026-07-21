@@ -37,6 +37,9 @@ test("/api/resolve-map-url resolves a Google Maps short link", async () => {
   assert.equal(response.status, 200);
   assert.equal(body.destination.name, "三重鴨霸王");
   assert.equal(body.destination.cityKey, "NewTaipei");
+  assert.equal(body.originalMapUrl, "https://maps.app.goo.gl/example");
+  assert.equal(body.canonicalMapUrl, "https://www.google.com/maps/search/?api=1&query=25.0779507%2C121.4900227");
+  assert.equal(body.destination.canonicalMapUrl, body.canonicalMapUrl);
 });
 
 test("/api/resolve-map-url geocodes mobile shared links without coordinates", async () => {
@@ -142,7 +145,7 @@ test("/api/resolve-map-url reads coordinates from mobile share preview html", as
   assert.equal(body.destination.lng, 121.46769920000001);
 });
 
-test("/api/resolve-map-url does not use stale preview coordinates for text query links", async () => {
+test("/api/resolve-map-url falls back to preview coordinates for text query links", async () => {
   const env = {
     OWNER_ACCESS_SECRET: "1234",
     RATE_LIMIT_MAX: "100",
@@ -166,6 +169,9 @@ test("/api/resolve-map-url does not use stale preview coordinates for text query
   );
   const body = await response.json();
 
-  assert.equal(response.status, 400);
-  assert.equal(body.error.code, "MAP_URL_UNRESOLVED");
+  assert.equal(response.status, 200);
+  assert.equal(body.destination.name, "302新竹縣竹北市文山步道觀景臺");
+  assert.equal(body.destination.lat, 25.041305599999994);
+  assert.equal(body.destination.lng, 121.46769920000001);
+  assert.equal(body.canonicalMapUrl, "https://www.google.com/maps/search/?api=1&query=25.041305599999994%2C121.46769920000001");
 });

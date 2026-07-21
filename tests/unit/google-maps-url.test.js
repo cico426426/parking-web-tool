@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { buildGoogleMapsDirectionsUrl } from "../../public/src/navigation/google-maps-url.js";
+import { buildGoogleMapsDirectionsUrl, buildGoogleMapsSearchUrl } from "../../public/src/navigation/google-maps-url.js";
 
 test("buildGoogleMapsDirectionsUrl creates a directions URL", () => {
   assert.equal(
@@ -12,4 +12,11 @@ test("buildGoogleMapsDirectionsUrl creates a directions URL", () => {
 
 test("buildGoogleMapsDirectionsUrl rejects invalid coordinates", () => {
   assert.throws(() => buildGoogleMapsDirectionsUrl("bad", 121.241), /Valid latitude/);
+});
+
+test("buildGoogleMapsSearchUrl creates a stable Maps URL from coordinates", () => {
+  assert.equal(
+    buildGoogleMapsSearchUrl(24.958, 121.241),
+    "https://www.google.com/maps/search/?api=1&query=24.958%2C121.241",
+  );
 });

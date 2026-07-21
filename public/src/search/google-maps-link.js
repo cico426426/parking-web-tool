@@ -2,6 +2,12 @@ import { cityKeyFromText, inferCityFromCoordinates } from "../parking/city.js";
 
 const GOOGLE_MAPS_HOSTS = new Set(["google.com", "www.google.com", "maps.google.com", "maps.app.goo.gl"]);
 const URL_PATTERN = /https?:\/\/[^\s<>"']+/i;
+const GOOGLE_MAPS_FETCH_HEADERS = {
+  Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+  "Accept-Language": "zh-TW,zh;q=0.9,en;q=0.8",
+  "User-Agent":
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+};
 
 export function extractUrl(text) {
   const match = String(text ?? "").match(URL_PATTERN);
@@ -31,6 +37,13 @@ export function parseGoogleMapsCoordinates(rawUrl) {
   const previewCoordinates = decoded.match(/!2d(-?\d+(?:\.\d+)?)!3d(-?\d+(?:\.\d+)?)/);
   if (previewCoordinates) {
     return toCoordinates(previewCoordinates[2], previewCoordinates[1]);
+  }
+
+  const liteCoordinates = decoded.match(
+    /\[\[\d+(?:\.\d+)?,(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)\],\[(?:0,){2}0\],\[\d+,\d+\],\d+(?:\.\d+)?\]/,
+  );
+  if (liteCoordinates) {
+    return toCoordinates(liteCoordinates[2], liteCoordinates[1]);
   }
 
   const viewportCoordinates = decoded.match(/\/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
@@ -75,22 +88,38 @@ export async function resolveGoogleMapsLink(text, options = {}) {
 
   if (!isShortGoogleMapsUrl(rawUrl)) return direct;
 
+  return resolveShortGoogleMapsUrl(rawUrl, options);
+}
+
+async function resolveShortGoogleMapsUrl(rawUrl, options) {
   const fetchImpl = options.fetchImpl ?? fetch;
-  const response = await fetchImpl(rawUrl, { redirect: "follow" });
-  const resolvedUrl = response.url || rawUrl;
+  for (const candidateUrl of shortGoogleMapsUrlCandidates(rawUrl)) {
+    const response = await fetchImpl(candidateUrl, {
+      redirect: "follow",
+      headers: GOOGLE_MAPS_FETCH_HEADERS,
+    });
+    const destination = await destinationFromGoogleMapsResponse(response, candidateUrl, options);
+    if (destination) return destination;
+  }
+
+  return null;
+}
+
+async function destinationFromGoogleMapsResponse(response, fallbackUrl, options) {
+  const resolvedUrl = response.url || fallbackUrl;
   const resolved = destinationFromUrl(resolvedUrl);
   if (resolved) return resolved;
 
-  const hasTextQuery = Boolean(googleMapsQueryFromUrl(resolvedUrl));
-  if (hasTextQuery) {
-    return geocodeGoogleMapsQuery(resolvedUrl, options);
+  const textQuery = googleMapsQueryFromUrl(resolvedUrl);
+  if (textQuery) {
+    const geocoded = await geocodeGoogleMapsQuery(resolvedUrl, options);
+    if (geocoded) return geocoded;
+
+    return destinationFromResponseBody(response, textQuery);
   }
 
-  if (typeof response.text === "function") {
-    const body = await response.text();
-    const bodyDestination = destinationFromUrl(body);
-    if (bodyDestination) return bodyDestination;
-  }
+  const bodyDestination = await destinationFromResponseBody(response);
+  if (bodyDestination) return bodyDestination;
 
   return geocodeGoogleMapsQuery(resolvedUrl, options);
 }
@@ -114,6 +143,19 @@ function isShortGoogleMapsUrl(rawUrl) {
   return url?.hostname === "maps.app.goo.gl";
 }
 
+function shortGoogleMapsUrlCandidates(rawUrl) {
+  const url = normalizeUrl(rawUrl);
+  if (!url) return [rawUrl];
+
+  const candidates = [url.toString()];
+  if (url.search) {
+    url.search = "";
+    candidates.push(url.toString());
+  }
+
+  return [...new Set(candidates)];
+}
+
 async function geocodeGoogleMapsQuery(rawUrl, options) {
   if (typeof options.geocodeImpl !== "function") return null;
 
@@ -129,6 +171,23 @@ async function geocodeGoogleMapsQuery(rawUrl, options) {
     lat: result.lat,
     lng: result.lng,
     cityKey: result.cityKey ?? cityKeyFromText(query) ?? inferCityFromCoordinates(result.lat, result.lng, null),
+    source: "google-maps-link",
+  };
+}
+
+async function destinationFromResponseBody(response, fallbackName = "") {
+  if (typeof response.text !== "function") return null;
+
+  const body = await response.text();
+  const coordinates = parseGoogleMapsCoordinates(body);
+  if (!coordinates) return null;
+
+  const name = fallbackName || "Google Maps 分享位置";
+  return {
+    name,
+    lat: coordinates.lat,
+    lng: coordinates.lng,
+    cityKey: cityKeyFromText(name) ?? inferCityFromCoordinates(coordinates.lat, coordinates.lng, null),
     source: "google-maps-link",
   };
 }

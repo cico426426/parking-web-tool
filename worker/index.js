@@ -1,6 +1,7 @@
 import { buildTdxParkingUrls, candidateCitiesFromCoordinates } from "../public/src/parking/city.js";
 import { buildAvailabilityMap, normalizeCarParks } from "../public/src/parking/normalize.js";
 import { rankRecommendations } from "../public/src/parking/rank.js";
+import { buildGoogleMapsSearchUrl } from "../public/src/navigation/google-maps-url.js";
 import { reverseGeocodeCity, searchDestinations } from "../public/src/search/geocode.js";
 import { resolveGoogleMapsLink } from "../public/src/search/google-maps-link.js";
 import { searchGoogleParkingNearby, searchGooglePlacesText } from "./google-places.js";
@@ -57,7 +58,15 @@ async function handleMapUrl(url, env) {
     return errorResponse("MAP_URL_UNRESOLVED", "Unable to resolve this Google Maps link.", 400);
   }
 
-  const payload = { destination };
+  const canonicalMapUrl = buildGoogleMapsSearchUrl(destination.lat, destination.lng);
+  const payload = {
+    originalMapUrl: mapUrl,
+    canonicalMapUrl,
+    destination: {
+      ...destination,
+      canonicalMapUrl,
+    },
+  };
   setCached(key, payload);
   return jsonResponse(payload);
 }
